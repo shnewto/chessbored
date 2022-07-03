@@ -82,6 +82,7 @@ fn board_map() -> Board {
 }
 
 fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<SpriteBundle> {
+    let sz = -0.1;
     vec![
         // row 1
         SpriteBundle {
@@ -89,7 +90,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("a1").unwrap().x,
                 board.get("a1").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -98,7 +99,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("b1").unwrap().x,
                 board.get("b1").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -107,7 +108,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("c1").unwrap().x,
                 board.get("c1").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -116,7 +117,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("d1").unwrap().x,
                 board.get("d1").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -125,7 +126,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("e1").unwrap().x,
                 board.get("e1").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -134,7 +135,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("f1").unwrap().x,
                 board.get("f1").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -143,7 +144,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("g1").unwrap().x,
                 board.get("g1").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -152,7 +153,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("h1").unwrap().x,
                 board.get("h1").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -162,7 +163,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("a2").unwrap().x,
                 board.get("a2").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -171,7 +172,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("b2").unwrap().x,
                 board.get("b2").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -180,7 +181,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("c2").unwrap().x,
                 board.get("c2").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -189,7 +190,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("d2").unwrap().x,
                 board.get("d2").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -198,7 +199,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("e2").unwrap().x,
                 board.get("e2").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -207,7 +208,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("f2").unwrap().x,
                 board.get("f2").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -216,7 +217,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("g2").unwrap().x,
                 board.get("g2").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -225,7 +226,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("h2").unwrap().x,
                 board.get("h2").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -235,7 +236,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("a3").unwrap().x,
                 board.get("a3").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -244,7 +245,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("b3").unwrap().x,
                 board.get("b3").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -253,7 +254,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("c3").unwrap().x,
                 board.get("c3").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -262,7 +263,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("d3").unwrap().x,
                 board.get("d3").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -271,7 +272,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("e3").unwrap().x,
                 board.get("e3").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -280,7 +281,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("f3").unwrap().x,
                 board.get("f3").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -289,7 +290,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("g3").unwrap().x,
                 board.get("g3").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -298,7 +299,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("h3").unwrap().x,
                 board.get("h3").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -308,7 +309,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("a4").unwrap().x,
                 board.get("a4").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -317,7 +318,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("b4").unwrap().x,
                 board.get("b4").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -326,7 +327,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("c4").unwrap().x,
                 board.get("c4").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -335,7 +336,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("d4").unwrap().x,
                 board.get("d4").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -344,7 +345,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("e4").unwrap().x,
                 board.get("e4").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -353,7 +354,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("f4").unwrap().x,
                 board.get("f4").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -362,7 +363,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("g4").unwrap().x,
                 board.get("g4").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -371,7 +372,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("h4").unwrap().x,
                 board.get("h4").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -381,7 +382,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("a5").unwrap().x,
                 board.get("a5").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -390,7 +391,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("b5").unwrap().x,
                 board.get("b5").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -399,7 +400,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("c5").unwrap().x,
                 board.get("c5").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -408,7 +409,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("d5").unwrap().x,
                 board.get("d5").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -417,7 +418,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("e5").unwrap().x,
                 board.get("e5").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -426,7 +427,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("f5").unwrap().x,
                 board.get("f5").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -435,7 +436,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("g5").unwrap().x,
                 board.get("g5").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -444,7 +445,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("h5").unwrap().x,
                 board.get("h5").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -454,7 +455,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("a6").unwrap().x,
                 board.get("a6").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -463,7 +464,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("b6").unwrap().x,
                 board.get("b6").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -472,7 +473,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("c6").unwrap().x,
                 board.get("c6").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -481,7 +482,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("d6").unwrap().x,
                 board.get("d6").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -490,7 +491,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("e6").unwrap().x,
                 board.get("e6").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -499,7 +500,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("f6").unwrap().x,
                 board.get("f6").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -508,7 +509,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("g6").unwrap().x,
                 board.get("g6").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -517,7 +518,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("h6").unwrap().x,
                 board.get("h6").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -527,7 +528,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("a7").unwrap().x,
                 board.get("a7").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -536,7 +537,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("b7").unwrap().x,
                 board.get("b7").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -545,7 +546,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("c7").unwrap().x,
                 board.get("c7").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -554,7 +555,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("d7").unwrap().x,
                 board.get("d7").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -563,7 +564,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("e7").unwrap().x,
                 board.get("e7").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -572,7 +573,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("f7").unwrap().x,
                 board.get("f7").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -581,7 +582,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("g7").unwrap().x,
                 board.get("g7").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -590,7 +591,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("h7").unwrap().x,
                 board.get("h7").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -600,7 +601,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("a8").unwrap().x,
                 board.get("a8").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -609,7 +610,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("b8").unwrap().x,
                 board.get("b8").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -618,7 +619,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("c8").unwrap().x,
                 board.get("c8").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -627,7 +628,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("d8").unwrap().x,
                 board.get("d8").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -636,7 +637,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("e8").unwrap().x,
                 board.get("e8").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -645,7 +646,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("f8").unwrap().x,
                 board.get("f8").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -654,7 +655,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("g8").unwrap().x,
                 board.get("g8").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -663,7 +664,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
             transform: Transform::from_xyz(
                 board.get("h8").unwrap().x,
                 board.get("h8").unwrap().y,
-                0.0,
+                sz,
             ),
             ..default()
         },
@@ -671,6 +672,7 @@ fn squares(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spr
 }
 
 fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<SpriteBundle> {
+    let pz = 0.0;
     vec![
         // black pawns
         SpriteBundle {
@@ -678,7 +680,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("a7").unwrap().x,
                 board.get("a7").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -687,7 +689,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("b7").unwrap().x,
                 board.get("b7").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -696,7 +698,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("c7").unwrap().x,
                 board.get("c7").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -705,7 +707,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("d7").unwrap().x,
                 board.get("d7").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -714,7 +716,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("e7").unwrap().x,
                 board.get("e7").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -723,7 +725,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("f7").unwrap().x,
                 board.get("f7").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -732,7 +734,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("g7").unwrap().x,
                 board.get("g7").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -741,7 +743,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("h7").unwrap().x,
                 board.get("h7").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -751,7 +753,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("a8").unwrap().x,
                 board.get("a8").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -760,7 +762,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("b8").unwrap().x,
                 board.get("b8").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -769,7 +771,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("c8").unwrap().x,
                 board.get("c8").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -778,7 +780,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("d8").unwrap().x,
                 board.get("d8").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -787,7 +789,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("e8").unwrap().x,
                 board.get("e8").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -796,7 +798,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("f8").unwrap().x,
                 board.get("f8").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -805,7 +807,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("g8").unwrap().x,
                 board.get("g8").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -814,7 +816,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("h8").unwrap().x,
                 board.get("h8").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -824,7 +826,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("a2").unwrap().x,
                 board.get("a2").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -833,7 +835,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("b2").unwrap().x,
                 board.get("b2").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -842,7 +844,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("c2").unwrap().x,
                 board.get("c2").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -851,7 +853,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("d2").unwrap().x,
                 board.get("d2").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -860,7 +862,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("e2").unwrap().x,
                 board.get("e2").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -869,7 +871,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("f2").unwrap().x,
                 board.get("f2").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -878,7 +880,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("g2").unwrap().x,
                 board.get("g2").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -887,7 +889,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("h2").unwrap().x,
                 board.get("h2").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -897,7 +899,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("a1").unwrap().x,
                 board.get("a1").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -906,7 +908,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("b1").unwrap().x,
                 board.get("b1").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -915,7 +917,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("c1").unwrap().x,
                 board.get("c1").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -924,7 +926,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("d1").unwrap().x,
                 board.get("d1").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -933,7 +935,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("e1").unwrap().x,
                 board.get("e1").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -942,7 +944,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("f1").unwrap().x,
                 board.get("f1").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -951,7 +953,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("g1").unwrap().x,
                 board.get("g1").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -960,7 +962,7 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
             transform: Transform::from_xyz(
                 board.get("h1").unwrap().x,
                 board.get("h1").unwrap().y,
-                0.0,
+                pz,
             ),
             ..default()
         },
@@ -971,8 +973,8 @@ pub fn load_board(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut board_assets: ResMut<BoardAssets>,
-    board: Res<Board>
-){
+    board: Res<Board>,
+) {
     board_assets.dark_square_handle = asset_server.load("board/dark-square.png");
     board_assets.light_square_handle = asset_server.load("board/light-square.png");
     commands.spawn_batch(squares(&board_assets, &board));
@@ -982,22 +984,22 @@ pub fn load_pieces(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut board_assets: ResMut<BoardAssets>,
-    board: Res<Board>
-){
-    board_assets.bp = asset_server.load("pieces/wb.png");
-    board_assets.br = asset_server.load("pieces/wb.png");
-    board_assets.bn = asset_server.load("pieces/wb.png");
-    board_assets.bb = asset_server.load("pieces/wb.png");
-    board_assets.bq = asset_server.load("pieces/wb.png");
-    board_assets.bk = asset_server.load("pieces/wb.png");
+    board: Res<Board>,
+) {
+    board_assets.bp = asset_server.load("pieces/bp.png");
+    board_assets.br = asset_server.load("pieces/br.png");
+    board_assets.bn = asset_server.load("pieces/bn.png");
+    board_assets.bb = asset_server.load("pieces/bq.png");
+    board_assets.bq = asset_server.load("pieces/bb.png");
+    board_assets.bk = asset_server.load("pieces/bk.png");
 
-    board_assets.wp = asset_server.load("pieces/wb.png");
-    board_assets.wr = asset_server.load("pieces/wb.png");
-    board_assets.wn = asset_server.load("pieces/wb.png");
+    board_assets.wp = asset_server.load("pieces/wp.png");
+    board_assets.wr = asset_server.load("pieces/wr.png");
+    board_assets.wn = asset_server.load("pieces/wn.png");
     board_assets.wb = asset_server.load("pieces/wb.png");
-    board_assets.wq = asset_server.load("pieces/wb.png");
-    board_assets.wk = asset_server.load("pieces/wb.png");
-    
+    board_assets.wq = asset_server.load("pieces/wq.png");
+    board_assets.wk = asset_server.load("pieces/wk.png");
+
     commands.spawn_batch(pieces(&board_assets, &board));
 }
 
@@ -1027,11 +1029,10 @@ pub enum ChessState {
     Loaded,
 }
 
-
 pub fn main() {
     App::new()
-    .insert_resource(BoardAssets::default())    
-    .insert_resource(Board::default())    
+        .insert_resource(BoardAssets::default())
+        .insert_resource(Board::default())
         .add_state(ChessState::Setup)
         .add_plugins(DefaultPlugins)
         .add_system_set(SystemSet::on_update(ChessState::Setup).with_system(setup))
@@ -1043,21 +1044,16 @@ pub fn main() {
         .run();
 }
 
-fn setup(
-    mut board: ResMut<Board>,
-    mut state: ResMut<State<ChessState>>,
-) {
+fn setup(mut board: ResMut<Board>, mut state: ResMut<State<ChessState>>) {
     *board = board_map();
     state.set(ChessState::LoadingBoard).unwrap();
 }
 
 fn loaded(mut commands: Commands) {
-    commands.spawn_bundle(Camera2dBundle {
-        transform: Transform::from_xyz(200.0, 200.0, 0.0),
-        ..default()
-    });
+    let mut camera = OrthographicCameraBundle::new_2d();
+    camera.transform = Transform::from_xyz(175.0, 175.0, 10.0);
+    commands.spawn_bundle(camera);
 }
-
 
 fn check_board(
     mut state: ResMut<State<ChessState>>,
@@ -1155,7 +1151,7 @@ fn check_pieces(
     } else {
         return;
     }
-    
+
     println!("all loaded!");
     state.set(ChessState::Loaded).unwrap();
 }
