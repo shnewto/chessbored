@@ -12,6 +12,7 @@ mod pieces;
 mod state;
 
 pub fn main() {
+    let clear_color_hex_string = "69696b";
     App::new()
         .insert_resource(BoardAssets::default())
         .insert_resource(PieceAssets::default())
@@ -23,6 +24,11 @@ pub fn main() {
             present_mode: PresentMode::Fifo,
             ..default()
         })
+        .insert_resource(ClearColor(
+            Color::hex(clear_color_hex_string).unwrap_or_else(|_| {
+                panic!("couldn't make hex color from {}", clear_color_hex_string)
+            }),
+        ))
         .add_state(ChessState::Setup)
         .add_plugins(DefaultPlugins)
         .add_plugin(PickingPlugin)

@@ -1,0 +1,14 @@
+body {
+    margin: 0;
+    background-color: #69696b;
+}
+
+canvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #69696b;
+    outline: none;
+    -webkit-tap-highlight-color: #69696b; /* mobile webkit */
+}
