@@ -1,7 +1,9 @@
 use bevy::{asset::LoadState, prelude::*};
 use std::collections::HashMap;
 
-fn board_map() -> HashMap<&'static str, Vec2> {
+type Board = HashMap<&'static str, Vec2>;
+
+fn board_map() -> Board {
     let mut board = HashMap::new();
 
     board.insert("a1", Vec2::new(0.0, 0.0));
@@ -965,41 +967,38 @@ fn pieces(assets: &BoardAssets, board: &HashMap<&'static str, Vec2>) -> Vec<Spri
     ]
 }
 
-fn setup(
+pub fn load_board(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut board_assets: ResMut<BoardAssets>,
-) {
-    let board = board_map();
-    commands.spawn_bundle(Camera2dBundle {
-        transform: Transform::from_xyz(200.0, 200.0, 0.0),
-        ..default()
-    });
-
+    board: Res<Board>
+){
     board_assets.dark_square_handle = asset_server.load("board/dark-square.png");
     board_assets.light_square_handle = asset_server.load("board/light-square.png");
-    board_assets.bp = asset_server.load("pieces/bp.png");
-    board_assets.br = asset_server.load("pieces/br.png");
-    board_assets.bn = asset_server.load("pieces/bn.png");
-    board_assets.bb = asset_server.load("pieces/bb.png");
-    board_assets.bq = asset_server.load("pieces/bq.png");
-    board_assets.bk = asset_server.load("pieces/bk.png");
-
-    board_assets.wp = asset_server.load("pieces/wp.png");
-    board_assets.wr = asset_server.load("pieces/wr.png");
-    board_assets.wn = asset_server.load("pieces/wn.png");
-    board_assets.wb = asset_server.load("pieces/wb.png");
-    board_assets.wq = asset_server.load("pieces/wq.png");
-    board_assets.wk = asset_server.load("pieces/wk.png");
-
     commands.spawn_batch(squares(&board_assets, &board));
-    commands.spawn_batch(pieces(&board_assets, &board));
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub enum ChessState {
-    LoadingAssets,
-    Loaded,
+pub fn load_pieces(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut board_assets: ResMut<BoardAssets>,
+    board: Res<Board>
+){
+    board_assets.bp = asset_server.load("pieces/wb.png");
+    board_assets.br = asset_server.load("pieces/wb.png");
+    board_assets.bn = asset_server.load("pieces/wb.png");
+    board_assets.bb = asset_server.load("pieces/wb.png");
+    board_assets.bq = asset_server.load("pieces/wb.png");
+    board_assets.bk = asset_server.load("pieces/wb.png");
+
+    board_assets.wp = asset_server.load("pieces/wb.png");
+    board_assets.wr = asset_server.load("pieces/wb.png");
+    board_assets.wn = asset_server.load("pieces/wb.png");
+    board_assets.wb = asset_server.load("pieces/wb.png");
+    board_assets.wq = asset_server.load("pieces/wb.png");
+    board_assets.wk = asset_server.load("pieces/wb.png");
+    
+    commands.spawn_batch(pieces(&board_assets, &board));
 }
 
 #[derive(Component, Debug, Default)]
@@ -1020,54 +1019,143 @@ pub struct BoardAssets {
     pub wk: Handle<Image>,
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub enum ChessState {
+    Setup,
+    LoadingBoard,
+    LoadingPieces,
+    Loaded,
+}
+
+
 pub fn main() {
     App::new()
-        .insert_resource(BoardAssets::default())
+    .insert_resource(BoardAssets::default())    
+    .insert_resource(Board::default())    
+        .add_state(ChessState::Setup)
         .add_plugins(DefaultPlugins)
-        .add_system_set(SystemSet::on_enter(ChessState::LoadingAssets).with_system(setup))
-        .add_system_set(SystemSet::on_update(ChessState::LoadingAssets).with_system(check))
-        .add_system_set(SystemSet::on_enter(ChessState::Loaded).with_system(loaded))
+        .add_system_set(SystemSet::on_update(ChessState::Setup).with_system(setup))
+        .add_system_set(SystemSet::on_enter(ChessState::LoadingBoard).with_system(load_board))
+        .add_system_set(SystemSet::on_update(ChessState::LoadingBoard).with_system(check_board))
+        .add_system_set(SystemSet::on_enter(ChessState::LoadingPieces).with_system(load_pieces))
+        .add_system_set(SystemSet::on_update(ChessState::LoadingPieces).with_system(check_pieces))
+        .add_system_set(SystemSet::on_exit(ChessState::LoadingPieces).with_system(loaded))
         .run();
 }
 
-fn loaded() {}
+fn setup(
+    mut board: ResMut<Board>,
+    mut state: ResMut<State<ChessState>>,
+) {
+    *board = board_map();
+    state.set(ChessState::LoadingBoard).unwrap();
+}
 
-fn check(
+fn loaded(mut commands: Commands) {
+    commands.spawn_bundle(Camera2dBundle {
+        transform: Transform::from_xyz(200.0, 200.0, 0.0),
+        ..default()
+    });
+}
+
+
+fn check_board(
     mut state: ResMut<State<ChessState>>,
     asset_server: Res<AssetServer>,
     board_assets: Res<BoardAssets>,
 ) {
-    if let (
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-    ) = (
-        asset_server.get_load_state(&board_assets.dark_square_handle),
-        asset_server.get_load_state(&board_assets.light_square_handle),
-        asset_server.get_load_state(&board_assets.bp),
-        asset_server.get_load_state(&board_assets.br),
-        asset_server.get_load_state(&board_assets.bn),
-        asset_server.get_load_state(&board_assets.bb),
-        asset_server.get_load_state(&board_assets.bq),
-        asset_server.get_load_state(&board_assets.bk),
-        asset_server.get_load_state(&board_assets.wp),
-        asset_server.get_load_state(&board_assets.wr),
-        asset_server.get_load_state(&board_assets.wn),
-        asset_server.get_load_state(&board_assets.wb),
-        asset_server.get_load_state(&board_assets.wq),
-        asset_server.get_load_state(&board_assets.wk),
-    ) {
-        state.set(ChessState::Loaded).unwrap();
+    if let (LoadState::Loaded,) = (asset_server.get_load_state(&board_assets.dark_square_handle),) {
+        println!("dark_square_handle loaded")
+    } else {
+        return;
     }
+
+    if let (LoadState::Loaded,) = (asset_server.get_load_state(&board_assets.light_square_handle),)
+    {
+        println!("light_square_handle loaded")
+    } else {
+        return;
+    }
+    state.set(ChessState::LoadingPieces).unwrap();
+}
+
+fn check_pieces(
+    mut state: ResMut<State<ChessState>>,
+    asset_server: Res<AssetServer>,
+    board_assets: Res<BoardAssets>,
+) {
+    if let (LoadState::Loaded,) = (asset_server.get_load_state(&board_assets.bp),) {
+        println!("bp loaded")
+    } else {
+        return;
+    }
+
+    if let (LoadState::Loaded,) = (asset_server.get_load_state(&board_assets.br),) {
+        println!("br loaded")
+    } else {
+        return;
+    }
+
+    if let (LoadState::Loaded,) = (asset_server.get_load_state(&board_assets.bn),) {
+        println!("bn loaded")
+    } else {
+        return;
+    }
+
+    if let (LoadState::Loaded,) = (asset_server.get_load_state(&board_assets.bb),) {
+        println!("bb loaded")
+    } else {
+        return;
+    }
+
+    if let (LoadState::Loaded,) = (asset_server.get_load_state(&board_assets.bq),) {
+        println!("bq loaded")
+    } else {
+        return;
+    }
+
+    if let (LoadState::Loaded,) = (asset_server.get_load_state(&board_assets.bk),) {
+        println!("bk loaded")
+    } else {
+        return;
+    }
+
+    if let (LoadState::Loaded,) = (asset_server.get_load_state(&board_assets.wp),) {
+        println!("wp loaded")
+    } else {
+        return;
+    }
+
+    if let (LoadState::Loaded,) = (asset_server.get_load_state(&board_assets.wr),) {
+        println!("wr loaded")
+    } else {
+        return;
+    }
+
+    if let (LoadState::Loaded,) = (asset_server.get_load_state(&board_assets.wn),) {
+        println!("wn loaded")
+    } else {
+        return;
+    }
+
+    if let (LoadState::Loaded,) = (asset_server.get_load_state(&board_assets.wb),) {
+        println!("wb loaded")
+    } else {
+        return;
+    }
+
+    if let (LoadState::Loaded,) = (asset_server.get_load_state(&board_assets.wq),) {
+        println!("wq loaded")
+    } else {
+        return;
+    }
+
+    if let (LoadState::Loaded,) = (asset_server.get_load_state(&board_assets.wk),) {
+        println!("wk loaded")
+    } else {
+        return;
+    }
+    
+    println!("all loaded!");
+    state.set(ChessState::Loaded).unwrap();
 }
