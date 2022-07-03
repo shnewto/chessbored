@@ -1,5 +1,5 @@
-use bevy::{asset::LoadState, prelude::*};
-use std::collections::HashMap;
+use bevy::{asset::LoadState, prelude::*, sprite::MaterialMesh2dBundle};
+use bevy_mod_picking::*;
 
 use crate::{board::Board, state::ChessState};
 
@@ -19,12 +19,7 @@ pub struct PieceAssets {
     pub wk: Handle<Image>,
 }
 
-pub fn load_pieces(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut piece_assets: ResMut<PieceAssets>,
-    board: Res<Board>,
-) {
+pub fn load_piece_assets(asset_server: Res<AssetServer>, mut piece_assets: ResMut<PieceAssets>) {
     piece_assets.bp = asset_server.load("pieces/bp.png");
     piece_assets.br = asset_server.load("pieces/br.png");
     piece_assets.bn = asset_server.load("pieces/bn.png");
@@ -38,8 +33,6 @@ pub fn load_pieces(
     piece_assets.wb = asset_server.load("pieces/wb.png");
     piece_assets.wq = asset_server.load("pieces/wq.png");
     piece_assets.wk = asset_server.load("pieces/wk.png");
-
-    commands.spawn_batch(pieces(&piece_assets, &board));
 }
 
 pub fn check_pieces(
@@ -76,303 +69,403 @@ pub fn check_pieces(
     ) {
         state.set(ChessState::Loaded).unwrap();
     }
-    
 }
 
-pub fn pieces(assets: &PieceAssets, board: &HashMap<&'static str, Vec2>) -> Vec<SpriteBundle> {
+pub fn spawn_pieces(
+    mut commands: Commands,
+    assets: ResMut<PieceAssets>,
+    board: Res<Board>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
     let pz = 0.0;
-    vec![
-        // black pawns
-        SpriteBundle {
-            texture: assets.bp.clone(),
+
+    // black pawns
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("a7").unwrap().x,
                 board.get("a7").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.bp.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.bp.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("b7").unwrap().x,
                 board.get("b7").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.bp.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.bp.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("c7").unwrap().x,
                 board.get("c7").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.bp.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.bp.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("d7").unwrap().x,
                 board.get("d7").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.bp.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.bp.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("e7").unwrap().x,
                 board.get("e7").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.bp.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.bp.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("f7").unwrap().x,
                 board.get("f7").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.bp.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.bp.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("g7").unwrap().x,
                 board.get("g7").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.bp.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.bp.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("h7").unwrap().x,
                 board.get("h7").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.bp.clone().into()),
             ..default()
-        },
-        // black major/minor
-        SpriteBundle {
-            texture: assets.br.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    // black major/minor
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("a8").unwrap().x,
                 board.get("a8").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.br.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.bn.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("b8").unwrap().x,
                 board.get("b8").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.bn.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.bb.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("c8").unwrap().x,
                 board.get("c8").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.bb.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.bq.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("d8").unwrap().x,
                 board.get("d8").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.bq.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.bk.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("e8").unwrap().x,
                 board.get("e8").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.bk.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.bb.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("f8").unwrap().x,
                 board.get("f8").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.bb.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.bn.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("g8").unwrap().x,
                 board.get("g8").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.bn.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.br.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("h8").unwrap().x,
                 board.get("h8").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.br.clone().into()),
             ..default()
-        },
-        // white pawns
-        SpriteBundle {
-            texture: assets.wp.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    // white pawns
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("a2").unwrap().x,
                 board.get("a2").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wp.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.wp.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("b2").unwrap().x,
                 board.get("b2").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wp.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.wp.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("c2").unwrap().x,
                 board.get("c2").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wp.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.wp.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("d2").unwrap().x,
                 board.get("d2").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wp.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.wp.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("e2").unwrap().x,
                 board.get("e2").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wp.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.wp.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("f2").unwrap().x,
                 board.get("f2").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wp.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.wp.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("g2").unwrap().x,
                 board.get("g2").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wp.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.wp.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("h2").unwrap().x,
                 board.get("h2").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wp.clone().into()),
             ..default()
-        },
-        // white major/minor
-        SpriteBundle {
-            texture: assets.wr.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    // white major/minor
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("a1").unwrap().x,
                 board.get("a1").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wr.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.wn.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("b1").unwrap().x,
                 board.get("b1").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wn.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.wb.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("c1").unwrap().x,
                 board.get("c1").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wb.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.wq.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("d1").unwrap().x,
                 board.get("d1").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wq.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.wk.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("e1").unwrap().x,
                 board.get("e1").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wk.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.wb.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("f1").unwrap().x,
                 board.get("f1").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wb.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.wn.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("g1").unwrap().x,
                 board.get("g1").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wn.clone().into()),
             ..default()
-        },
-        SpriteBundle {
-            texture: assets.wr.clone(),
+        })
+        .insert_bundle(PickableBundle::default());
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes.add(Mesh::from(shape::Quad{ size: Vec2::new(50.0, 50.0), ..default()})).into(),
             transform: Transform::from_xyz(
                 board.get("h1").unwrap().x,
                 board.get("h1").unwrap().y,
                 pz,
             ),
+            material: materials.add(assets.wr.clone().into()),
             ..default()
-        },
-    ]
+        })
+        .insert_bundle(PickableBundle::default());
 }
