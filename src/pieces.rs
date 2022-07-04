@@ -1,9 +1,7 @@
-use bevy::{
-    asset::LoadState, prelude::*, render::camera::RenderTarget, sprite::MaterialMesh2dBundle,
-};
+use bevy::{prelude::*, render::camera::RenderTarget, sprite::MaterialMesh2dBundle};
 use bevy_mod_picking::*;
 
-use crate::{board::Board, camera::ChessCamera, state::ChessState};
+use crate::{board::Board, camera::ChessCamera, assets::BoardAssets};
 
 #[derive(Debug)]
 pub enum Side {
@@ -38,82 +36,21 @@ pub struct Piece {
     pub def: Side,
 }
 
-#[derive(Component, Debug, Default)]
-pub struct PieceAssets {
-    pub bp: Handle<Image>,
-    pub br: Handle<Image>,
-    pub bn: Handle<Image>,
-    pub bb: Handle<Image>,
-    pub bq: Handle<Image>,
-    pub bk: Handle<Image>,
-    pub wp: Handle<Image>,
-    pub wr: Handle<Image>,
-    pub wn: Handle<Image>,
-    pub wb: Handle<Image>,
-    pub wq: Handle<Image>,
-    pub wk: Handle<Image>,
-}
-
-pub fn load_piece_assets(asset_server: Res<AssetServer>, mut piece_assets: ResMut<PieceAssets>) {
-    piece_assets.bp = asset_server.load("pieces/bp.png");
-    piece_assets.br = asset_server.load("pieces/br.png");
-    piece_assets.bn = asset_server.load("pieces/bn.png");
-    piece_assets.bb = asset_server.load("pieces/bb.png");
-    piece_assets.bq = asset_server.load("pieces/bq.png");
-    piece_assets.bk = asset_server.load("pieces/bk.png");
-
-    piece_assets.wp = asset_server.load("pieces/wp.png");
-    piece_assets.wr = asset_server.load("pieces/wr.png");
-    piece_assets.wn = asset_server.load("pieces/wn.png");
-    piece_assets.wb = asset_server.load("pieces/wb.png");
-    piece_assets.wq = asset_server.load("pieces/wq.png");
-    piece_assets.wk = asset_server.load("pieces/wk.png");
-}
-
-pub fn check_pieces(
-    mut state: ResMut<State<ChessState>>,
-    asset_server: Res<AssetServer>,
-    piece_assets: Res<PieceAssets>,
-) {
-    if let (
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-    ) = (
-        asset_server.get_load_state(&piece_assets.bp),
-        asset_server.get_load_state(&piece_assets.br),
-        asset_server.get_load_state(&piece_assets.bn),
-        asset_server.get_load_state(&piece_assets.bb),
-        asset_server.get_load_state(&piece_assets.bq),
-        asset_server.get_load_state(&piece_assets.bk),
-        asset_server.get_load_state(&piece_assets.wp),
-        asset_server.get_load_state(&piece_assets.wr),
-        asset_server.get_load_state(&piece_assets.wn),
-        asset_server.get_load_state(&piece_assets.wb),
-        asset_server.get_load_state(&piece_assets.wq),
-        asset_server.get_load_state(&piece_assets.wk),
-    ) {
-        state.set(ChessState::Loaded).unwrap();
-    }
-}
-
-pub fn piece_selection(
+pub fn mouse_selection(
     mut events: EventReader<PickingEvent>,
-    mut query: Query<(&mut Piece, With<PickableMesh>)>,
+    mut query: Query<(&mut Piece, &mut Transform, With<PickableMesh>)>,
 ) {
     for event in events.iter() {
         if let PickingEvent::Clicked(e) = event {
-            if let Ok((mut piece, _)) = query.get_mut(*e) {
+            if let Ok((mut piece, mut transform, _)) = query.get_mut(*e) {
                 piece.selected = !piece.selected;
+                
+                if piece.selected {
+                    transform.translation.z = 1.0;
+                    
+                } else {
+                    transform.translation.z = 0.0;
+                }
             }
         }
     }
@@ -153,9 +90,9 @@ pub fn piece_movement(
     }
 }
 
-pub fn spawn_pieces(
+pub fn setup(
     mut commands: Commands,
-    assets: ResMut<PieceAssets>,
+    assets: ResMut<BoardAssets>,
     board: Res<Board>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
