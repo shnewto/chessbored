@@ -1,7 +1,7 @@
 use bevy::{prelude::*, render::camera::RenderTarget, sprite::MaterialMesh2dBundle};
 use bevy_mod_picking::*;
 
-use crate::{board::Board, camera::ChessCamera, assets::BoardAssets};
+use crate::{assets::BoardAssets, board::Board, camera::ChessCamera};
 
 #[derive(Debug)]
 pub enum Side {
@@ -36,7 +36,7 @@ pub struct Piece {
     pub def: Side,
 }
 
-pub fn mouse_selection(
+pub fn selection(
     mut events: EventReader<PickingEvent>,
     mut query: Query<(&mut Piece, &mut Transform, With<PickableMesh>)>,
 ) {
@@ -44,10 +44,8 @@ pub fn mouse_selection(
         if let PickingEvent::Clicked(e) = event {
             if let Ok((mut piece, mut transform, _)) = query.get_mut(*e) {
                 piece.selected = !piece.selected;
-                
                 if piece.selected {
                     transform.translation.z = 1.0;
-                    
                 } else {
                     transform.translation.z = 0.0;
                 }
@@ -59,7 +57,7 @@ pub fn mouse_selection(
 pub fn piece_movement(
     wnds: Res<Windows>,
     q_camera: Query<(&Camera, &GlobalTransform), With<ChessCamera>>,
-    mut query: Query<(&mut Transform, &mut Piece, With<PickableMesh>)>,
+    mut query: Query<(&mut Transform, &Piece, With<PickableMesh>)>,
 ) {
     for (mut transform, piece, _) in query.iter_mut() {
         if piece.selected {
@@ -80,8 +78,6 @@ pub fn piece_movement(
                     camera_transform.compute_matrix() * camera.projection_matrix().inverse();
 
                 let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
-
-                let world_pos: Vec2 = world_pos.truncate();
 
                 transform.translation.x = world_pos.x;
                 transform.translation.y = world_pos.y;

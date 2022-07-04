@@ -52,7 +52,7 @@ pub fn main() {
                 .with_system(camera::setup)
                 .after("pieces"),
         )
-        .add_system_to_stage(CoreStage::PostUpdate, pieces::mouse_selection)
+        .add_system_to_stage(CoreStage::PostUpdate, pieces::selection)
         .add_system_to_stage(CoreStage::Last, pieces::piece_movement)
         .run();
 }

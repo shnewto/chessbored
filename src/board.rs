@@ -83,11 +83,7 @@ pub fn board_map() -> Board {
     board
 }
 
-pub fn setup(
-    mut commands: Commands,
-    assets: ResMut<BoardAssets>,
-    board: Res<Board>,
-) {
+pub fn setup(mut commands: Commands, assets: ResMut<BoardAssets>, board: Res<Board>) {
     let sz = -0.01;
     // row 1
     commands.spawn_bundle(SpriteBundle {
