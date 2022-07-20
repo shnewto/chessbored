@@ -2,9 +2,7 @@
 
 a chess board with movable pieces.
 
-
-![](/img/board.png)
-
+![grey and white chess board, grey and white pieces each in their starting positions](/img/board.png)
 
 the intention was to make something that behaves mostly like a chessboard on the table. useful for setting up puzzles and analyzing positions.
 
@@ -17,7 +15,7 @@ the intention was to make something that behaves mostly like a chessboard on the
 
 ## try it out
 
-https://chessboard.shnewto.space
+<https://chessboard.shnewto.space>
 
 ## running locally
 
