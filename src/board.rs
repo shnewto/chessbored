@@ -80,10 +80,25 @@ pub fn board_map() -> Board {
     board.insert("g8", Vec2::new(300.0, 350.0));
     board.insert("h8", Vec2::new(350.0, 350.0));
 
+    // side selection
+    board.insert("wq", Vec2::new(410.0, 100.0));
+    board.insert("wk", Vec2::new(460.0, 100.0));
+    board.insert("wn", Vec2::new(410.0, 50.0));
+    board.insert("wb", Vec2::new(460.0, 50.0));
+    board.insert("wp", Vec2::new(410.0, 0.0));
+    board.insert("wr", Vec2::new(460.0, 0.0));
+
+    board.insert("bq", Vec2::new(410.0, 350.0));
+    board.insert("bk", Vec2::new(460.0, 350.0));
+    board.insert("bn", Vec2::new(410.0, 300.0));
+    board.insert("bb", Vec2::new(460.0, 300.0));
+    board.insert("bp", Vec2::new(410.0, 250.0));
+    board.insert("br", Vec2::new(460.0, 250.0));
+
     board
 }
 
-pub fn setup(mut commands: Commands, assets: ResMut<BoardAssets>, board: Res<Board>) {
+pub fn setup_board(mut commands: Commands, assets: ResMut<BoardAssets>, board: Res<Board>) {
     let sz = -0.01;
     // row 1
     commands.spawn_bundle(SpriteBundle {

@@ -13,7 +13,7 @@ pub fn main() {
         .insert_resource(assets::BoardAssets::default())
         .insert_resource(board::Board::default())
         .insert_resource(WindowDescriptor {
-            width: 640.,
+            width: 720.,
             height: 640.,
             title: "chessboard".to_string(),
             present_mode: PresentMode::Fifo,
@@ -38,22 +38,26 @@ pub fn main() {
         )
         .add_system_set(
             SystemSet::on_exit(state::ChessState::Loading)
-                .with_system(board::setup)
-                .label("board"),
+                .with_system(board::setup_board)
+                .label("setup_piece_selection"),
         )
         .add_system_set(
             SystemSet::on_exit(state::ChessState::Loading)
-                .with_system(pieces::setup)
-                .after("board")
-                .label("pieces"),
+                .with_system(pieces::setup_piece_selection)
+                .after("setup_piece_selection")
+                .label("piece_selection"),
         )
         .add_system_set(
             SystemSet::on_exit(state::ChessState::Loading)
                 .with_system(camera::setup)
-                .after("pieces"),
+                .after("piece_selection"),
         )
         .add_system_to_stage(CoreStage::PostUpdate, pieces::selection)
+        .add_system_to_stage(CoreStage::PostUpdate, pieces::side_piece_selection)
+        .add_system_to_stage(CoreStage::Last, pieces::cancel_piece_movement)
         .add_system_to_stage(CoreStage::Last, pieces::piece_movement)
+        .add_system_to_stage(CoreStage::Last, pieces::clear_board)
+        .add_system_to_stage(CoreStage::Last, pieces::starting_positions)
         .run();
 }
 
