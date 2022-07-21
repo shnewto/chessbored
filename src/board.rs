@@ -5,7 +5,7 @@ use crate::assets::BoardAssets;
 
 pub type Board = HashMap<&'static str, Vec2>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Rank {
     A,
     B,
@@ -17,7 +17,7 @@ pub enum Rank {
     H,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum File {
     ONE,
     TWO,
@@ -29,7 +29,7 @@ pub enum File {
     EIGHT,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Square {
     pub rank: Rank,
     pub file: File,

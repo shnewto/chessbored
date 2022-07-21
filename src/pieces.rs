@@ -6,7 +6,7 @@ use bevy::{
 };
 use bevy_mod_picking::*;
 
-use crate::{assets::BoardAssets, board::{Board, self}, camera::ChessCamera};
+use crate::{assets::BoardAssets, board::Board, camera::ChessCamera};
 
 #[derive(Debug, Clone)]
 pub enum Side {
@@ -36,7 +36,29 @@ impl Default for Side {
     }
 }
 
-#[derive(Component, Debug, Default)]
+impl Side {
+    pub fn fen_str(&self) -> &str {
+        match self {
+            Self::White(p) => match p {
+                Kind::Queen => "Q",
+                Kind::King => "K",
+                Kind::Bishop => "B",
+                Kind::Knight => "N",
+                Kind::Rook => "R",
+                Kind::Pawn => "P",
+            },
+            Self::Black(p) => match p {
+                Kind::Queen => "q",
+                Kind::King => "k",
+                Kind::Bishop => "b",
+                Kind::Knight => "n",
+                Kind::Rook => "r",
+                Kind::Pawn => "p",
+            },
+        }
+    }
+}
+#[derive(Component, Debug, Clone, Default)]
 pub struct Piece {
     pub def: Side,
     pub selected_translation: Option<Vec3>,
