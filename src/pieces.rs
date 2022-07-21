@@ -1,7 +1,8 @@
 use bevy::{
     prelude::*,
     render::camera::RenderTarget,
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle}, ui::FocusPolicy,
+    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
+    ui::FocusPolicy,
 };
 use bevy_mod_picking::*;
 
@@ -40,6 +41,7 @@ pub struct Piece {
     pub def: Side,
     pub selected_translation: Option<Vec3>,
     pub sprite_handle: Handle<ColorMaterial>,
+    pub stale: bool,
 }
 
 #[derive(Component, Debug, Default)]
@@ -62,10 +64,22 @@ pub fn side_piece_selection(
         Without<SelectedPiece>,
         Without<ActivePiece>,
     )>,
+    selected_query: Query<(
+        &Piece,
+        With<PickableMesh>,
+        With<SelectedPiece>,
+        Without<SourcePiece>,
+        Without<ActivePiece>,
+    )>,
 ) {
     for event in events.iter() {
         if let PickingEvent::Clicked(e) = event {
             if let Ok((piece_selection, transform, mesh_handle, _, _, _, _)) = query.get(*e) {
+                if let Ok((_, _, _, _, _)) = selected_query.get_single() {
+                    // disable picking a piece when one's already in hand
+                    return;
+                }
+
                 commands
                     .spawn_bundle(MaterialMesh2dBundle {
                         mesh: mesh_handle.clone(),
@@ -77,11 +91,15 @@ pub fn side_piece_selection(
                         ),
                         ..default()
                     })
-                    .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+                    .insert_bundle(PickableBundle {
+                        focus_policy: FocusPolicy::Pass,
+                        ..default()
+                    })
                     .insert(Piece {
                         def: piece_selection.def.clone(),
                         selected_translation: None,
                         sprite_handle: piece_selection.sprite_handle.clone(),
+                        ..default()
                     })
                     .insert(SelectedPiece);
             }
@@ -92,41 +110,48 @@ pub fn side_piece_selection(
 pub fn selection(
     mut commands: Commands,
     mut events: EventReader<PickingEvent>,
-    active_query: Query<(
-        Entity,
-        &Piece,
+    mut active_query: Query<(
+        &mut Piece,
         &Transform,
         &Mesh2dHandle,
         With<PickableMesh>,
         With<ActivePiece>,
+        Without<SourcePiece>,
+        Without<SelectedPiece>,
     )>,
-    selected_query: Query<(
-        Entity,
-        &Piece,
+    mut selected_query: Query<(
+        &mut Piece,
         &Transform,
         &Mesh2dHandle,
         With<PickableMesh>,
         With<SelectedPiece>,
+        Without<SourcePiece>,
+        Without<ActivePiece>,
     )>,
 ) {
     for event in events.iter() {
         if let PickingEvent::Clicked(e) = event {
             // we're clicking on a placed piece
-            if let Ok((active_entity, active_piece, active_transform, active_mesh, _, _,)) =
-                active_query.get(*e)
+            if let Ok((mut active_piece, active_transform, active_mesh, _, _, _, _)) =
+                active_query.get_mut(*e)
             {
-                eprintln!("we're clicking on a placed piece");
                 if let Ok((
-                    selected_entity,
-                    selected_piece,
+                    mut selected_piece,
                     selected_transform,
                     selected_mesh,
                     _,
                     _,
-                )) = selected_query.get_single()
+                    _,
+                    _,
+                )) = selected_query.get_single_mut()
                 {
                     // there's a piece selected / in hand already
-                    eprintln!("there's a piece selected / in hand already");
+
+                    if selected_transform.translation.x > 360.0 {
+                        // don't allow grabbing more pieces from the when an piece is already in hand
+                        return;
+                    }
+
                     commands
                         .spawn_bundle(MaterialMesh2dBundle {
                             mesh: selected_mesh.clone(),
@@ -138,19 +163,21 @@ pub fn selection(
                             material: selected_piece.sprite_handle.clone(),
                             ..default()
                         })
-                        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+                        .insert_bundle(PickableBundle {
+                            focus_policy: FocusPolicy::Pass,
+                            ..default()
+                        })
                         .insert(Piece {
                             def: selected_piece.def.clone(),
                             selected_translation: None,
                             sprite_handle: selected_piece.sprite_handle.clone(),
+                            ..default()
                         })
                         .insert(ActivePiece);
-
-                    commands.entity(active_entity).despawn();
-                    commands.entity(selected_entity).despawn();
+                        active_piece.stale = true;
+                        selected_piece.stale = true;
                 } else {
                     // there's no piece in hand so put the current selection in hand
-                    eprintln!("there's no piece in hand so put the current selection in hand");
                     commands
                         .spawn_bundle(MaterialMesh2dBundle {
                             mesh: active_mesh.clone(),
@@ -162,28 +189,35 @@ pub fn selection(
                             material: active_piece.sprite_handle.clone(),
                             ..default()
                         })
-                        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+                        .insert_bundle(PickableBundle {
+                            focus_policy: FocusPolicy::Pass,
+                            ..default()
+                        })
                         .insert(Piece {
                             def: active_piece.def.clone(),
                             selected_translation: Some(active_transform.translation),
                             sprite_handle: active_piece.sprite_handle.clone(),
+                            ..default()
                         })
                         .insert(SelectedPiece);
-
-                    commands.entity(active_entity).despawn();
+                        active_piece.stale = true;
                 }
             }
             // there's no piece on the board, only one in hand
             else if let Ok((
-                selected_entity,
-                selected_piece,
+                mut selected_piece,
                 selected_transform,
                 selected_mesh,
                 _,
                 _,
-            )) = selected_query.get_single()
+                _,
+                _,
+            )) = selected_query.get_single_mut()
             {
-                eprintln!("there's no piece here on the board, only one in hand");
+                if selected_transform.translation.x > 360.0 {
+                    // don't allow placing on the right side of the board where the piece selections are
+                    return;
+                }
                 commands
                     .spawn_bundle(MaterialMesh2dBundle {
                         mesh: selected_mesh.clone(),
@@ -195,15 +229,18 @@ pub fn selection(
                         material: selected_piece.sprite_handle.clone(),
                         ..default()
                     })
-                    .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+                    .insert_bundle(PickableBundle {
+                        focus_policy: FocusPolicy::Pass,
+                        ..default()
+                    })
                     .insert(Piece {
                         def: selected_piece.def.clone(),
                         selected_translation: None,
                         sprite_handle: selected_piece.sprite_handle.clone(),
+                        ..default()
                     })
                     .insert(ActivePiece);
-
-                commands.entity(selected_entity).despawn();
+                    selected_piece.stale = true;
             }
         }
     }
@@ -268,27 +305,30 @@ pub fn cancel_piece_movement(
                         material: piece.sprite_handle.clone(),
                         ..default()
                     })
-                    .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+                    .insert_bundle(PickableBundle {
+                        focus_policy: FocusPolicy::Pass,
+                        ..default()
+                    })
                     .insert(Piece {
                         def: piece.def.clone(),
                         selected_translation: Some(selected_translation),
                         sprite_handle: piece.sprite_handle.clone(),
+                        ..default()
                     })
                     .insert(ActivePiece);
-
-                commands.entity(entity).despawn();
+                commands.entity(entity).despawn_recursive();
             } else {
-                commands.entity(entity).despawn();
+                commands.entity(entity).despawn_recursive();
             }
         } else if keys.pressed(KeyCode::X) {
-            commands.entity(entity).despawn();
+            commands.entity(entity).despawn_recursive();
         }
     }
 }
 
 pub fn clear_board(
     mut commands: Commands,
-    mut query: Query<(
+    mut active_query: Query<(
         Entity,
         &Piece,
         With<PickableMesh>,
@@ -296,11 +336,25 @@ pub fn clear_board(
         Without<SourcePiece>,
         Without<SelectedPiece>,
     )>,
+    mut selected_query: Query<(
+        Entity,
+        &Piece,
+        With<PickableMesh>,
+        With<SelectedPiece>,
+        Without<SourcePiece>,
+        Without<ActivePiece>,
+    )>,
     keys: Res<Input<KeyCode>>,
 ) {
-    for (entity, _, _, _, _, _) in query.iter_mut() {
-        if keys.pressed(KeyCode::C) {
-            commands.entity(entity).despawn();
+    for (entity, piece, _, _, _, _) in active_query.iter_mut() {
+        if keys.pressed(KeyCode::C) || piece.stale {
+            commands.entity(entity).despawn_recursive();
+        }
+    }
+
+    for (entity, piece, _, _, _, _) in selected_query.iter_mut() {
+        if keys.pressed(KeyCode::C) || piece.stale {
+            commands.entity(entity).despawn_recursive();
         }
     }
 }
@@ -346,7 +400,10 @@ pub fn setup_piece_selection(
             material: bq_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Queen),
             sprite_handle: bq_material_handle,
@@ -375,7 +432,10 @@ pub fn setup_piece_selection(
             material: bk_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::King),
             sprite_handle: bk_material_handle,
@@ -404,7 +464,10 @@ pub fn setup_piece_selection(
             material: bp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Pawn),
             sprite_handle: bp_material_handle,
@@ -433,7 +496,10 @@ pub fn setup_piece_selection(
             material: bb_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Bishop),
             sprite_handle: bb_material_handle,
@@ -463,7 +529,10 @@ pub fn setup_piece_selection(
             material: bn_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Knight),
             sprite_handle: bn_material_handle,
@@ -492,7 +561,10 @@ pub fn setup_piece_selection(
             material: br_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Rook),
             sprite_handle: br_material_handle,
@@ -523,7 +595,10 @@ pub fn setup_piece_selection(
             material: wq_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Queen),
             sprite_handle: wq_material_handle,
@@ -552,7 +627,10 @@ pub fn setup_piece_selection(
             material: wk_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::King),
             sprite_handle: wk_material_handle,
@@ -582,7 +660,10 @@ pub fn setup_piece_selection(
             material: wp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Pawn),
             sprite_handle: wp_material_handle,
@@ -611,7 +692,10 @@ pub fn setup_piece_selection(
             material: wb_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Bishop),
             sprite_handle: wb_material_handle,
@@ -640,7 +724,10 @@ pub fn setup_piece_selection(
             material: wn_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Knight),
             sprite_handle: wn_material_handle,
@@ -668,7 +755,10 @@ pub fn setup_piece_selection(
             material: wr_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Rook),
             sprite_handle: wr_material_handle,
@@ -703,7 +793,7 @@ pub fn starting_positions(
     }
 
     for (entity, _piece, _, _, _, _) in query.iter() {
-        commands.entity(entity).despawn();
+        commands.entity(entity).despawn_recursive();
     }
 
     let pz = 0.0;
@@ -740,7 +830,10 @@ pub fn starting_positions(
             material: bp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Pawn),
             sprite_handle: bp_material_handle.clone(),
@@ -768,7 +861,10 @@ pub fn starting_positions(
             material: bp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Pawn),
             sprite_handle: bp_material_handle.clone(),
@@ -796,7 +892,10 @@ pub fn starting_positions(
             material: bp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Pawn),
             sprite_handle: bp_material_handle.clone(),
@@ -824,7 +923,10 @@ pub fn starting_positions(
             material: bp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Pawn),
             sprite_handle: bp_material_handle.clone(),
@@ -852,7 +954,10 @@ pub fn starting_positions(
             material: bp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Pawn),
             sprite_handle: bp_material_handle.clone(),
@@ -880,7 +985,10 @@ pub fn starting_positions(
             material: bp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Pawn),
             sprite_handle: bp_material_handle.clone(),
@@ -908,7 +1016,10 @@ pub fn starting_positions(
             material: bp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Pawn),
             sprite_handle: bp_material_handle.clone(),
@@ -936,7 +1047,10 @@ pub fn starting_positions(
             material: bp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Pawn),
             sprite_handle: bp_material_handle.clone(),
@@ -965,7 +1079,10 @@ pub fn starting_positions(
             material: br_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Rook),
             sprite_handle: br_material_handle.clone(),
@@ -993,7 +1110,10 @@ pub fn starting_positions(
             material: bn_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Knight),
             sprite_handle: bn_material_handle.clone(),
@@ -1021,7 +1141,10 @@ pub fn starting_positions(
             material: bb_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Bishop),
             sprite_handle: bn_material_handle.clone(),
@@ -1049,7 +1172,10 @@ pub fn starting_positions(
             material: bq_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Queen),
             sprite_handle: bq_material_handle.clone(),
@@ -1077,7 +1203,10 @@ pub fn starting_positions(
             material: bk_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::King),
             sprite_handle: bk_material_handle.clone(),
@@ -1105,7 +1234,10 @@ pub fn starting_positions(
             material: bb_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Bishop),
             sprite_handle: bb_material_handle.clone(),
@@ -1133,7 +1265,10 @@ pub fn starting_positions(
             material: bn_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Knight),
             sprite_handle: bn_material_handle.clone(),
@@ -1161,7 +1296,10 @@ pub fn starting_positions(
             material: br_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::Black(Kind::Rook),
             sprite_handle: br_material_handle.clone(),
@@ -1190,7 +1328,10 @@ pub fn starting_positions(
             material: wp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Pawn),
             sprite_handle: wp_material_handle.clone(),
@@ -1218,7 +1359,10 @@ pub fn starting_positions(
             material: wp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Pawn),
             sprite_handle: wp_material_handle.clone(),
@@ -1246,7 +1390,10 @@ pub fn starting_positions(
             material: wp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Pawn),
             sprite_handle: wp_material_handle.clone(),
@@ -1274,7 +1421,10 @@ pub fn starting_positions(
             material: wp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Pawn),
             sprite_handle: wp_material_handle.clone(),
@@ -1302,7 +1452,10 @@ pub fn starting_positions(
             material: wp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Pawn),
             sprite_handle: wp_material_handle.clone(),
@@ -1330,7 +1483,10 @@ pub fn starting_positions(
             material: wp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Pawn),
             sprite_handle: wp_material_handle.clone(),
@@ -1358,7 +1514,10 @@ pub fn starting_positions(
             material: wp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Pawn),
             sprite_handle: wp_material_handle.clone(),
@@ -1386,7 +1545,10 @@ pub fn starting_positions(
             material: wp_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Pawn),
             sprite_handle: wp_material_handle.clone(),
@@ -1415,7 +1577,10 @@ pub fn starting_positions(
             material: wr_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Rook),
             sprite_handle: wr_material_handle.clone(),
@@ -1443,7 +1608,10 @@ pub fn starting_positions(
             material: wn_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Knight),
             sprite_handle: wn_material_handle.clone(),
@@ -1471,7 +1639,10 @@ pub fn starting_positions(
             material: wb_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Bishop),
             sprite_handle: wb_material_handle.clone(),
@@ -1499,7 +1670,10 @@ pub fn starting_positions(
             material: wq_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Queen),
             sprite_handle: wq_material_handle.clone(),
@@ -1527,7 +1701,10 @@ pub fn starting_positions(
             material: wk_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::King),
             sprite_handle: wk_material_handle.clone(),
@@ -1555,7 +1732,10 @@ pub fn starting_positions(
             material: wb_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Bishop),
             sprite_handle: wb_material_handle.clone(),
@@ -1583,7 +1763,10 @@ pub fn starting_positions(
             material: wn_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Knight),
             sprite_handle: wn_material_handle.clone(),
@@ -1611,7 +1794,10 @@ pub fn starting_positions(
             material: wr_material_handle.clone(),
             ..default()
         })
-        .insert_bundle(PickableBundle{ focus_policy: FocusPolicy::Pass, ..default()})
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
         .insert(Piece {
             def: Side::White(Kind::Rook),
             sprite_handle: wr_material_handle.clone(),

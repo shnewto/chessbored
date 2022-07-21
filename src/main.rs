@@ -52,12 +52,12 @@ pub fn main() {
                 .with_system(camera::setup)
                 .after("piece_selection"),
         )
-        .add_system_to_stage(CoreStage::PostUpdate, pieces::selection)
-        .add_system_to_stage(CoreStage::PostUpdate, pieces::side_piece_selection)
-        .add_system_to_stage(CoreStage::Last, pieces::cancel_piece_movement)
+        .add_system_to_stage(CoreStage::Update, pieces::cancel_piece_movement)
+        .add_system_to_stage(CoreStage::Update, pieces::starting_positions)
+        .add_system_to_stage(CoreStage::Update, pieces::selection)
+        .add_system_to_stage(CoreStage::Update, pieces::side_piece_selection)
+        .add_system_to_stage(CoreStage::PostUpdate, pieces::clear_board)
         .add_system_to_stage(CoreStage::Last, pieces::piece_movement)
-        .add_system_to_stage(CoreStage::Last, pieces::clear_board)
-        .add_system_to_stage(CoreStage::Last, pieces::starting_positions)
         .run();
 }
 
