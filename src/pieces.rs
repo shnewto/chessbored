@@ -6,7 +6,11 @@ use bevy::{
 };
 use bevy_mod_picking::*;
 
-use crate::{assets::BoardAssets, board::Board, camera::ChessCamera};
+use crate::{
+    assets::BoardAssets,
+    camera::ChessCamera,
+    types::{Board, WithActivePiece, WithSelectedPiece, WithSourcePiece},
+};
 
 #[derive(Debug, Clone)]
 pub enum Side {
@@ -82,22 +86,14 @@ pub fn side_piece_selection(
         &Transform,
         &Mesh2dHandle,
         With<PickableMesh>,
-        With<SourcePiece>,
-        Without<SelectedPiece>,
-        Without<ActivePiece>,
+        WithSourcePiece,
     )>,
-    selected_query: Query<(
-        &Piece,
-        With<PickableMesh>,
-        With<SelectedPiece>,
-        Without<SourcePiece>,
-        Without<ActivePiece>,
-    )>,
+    selected_query: Query<(&Piece, With<PickableMesh>, WithSelectedPiece)>,
 ) {
     for event in events.iter() {
         if let PickingEvent::Clicked(e) = event {
-            if let Ok((piece_selection, transform, mesh_handle, _, _, _, _)) = query.get(*e) {
-                if let Ok((_, _, _, _, _)) = selected_query.get_single() {
+            if let Ok((piece_selection, transform, mesh_handle, _, _)) = query.get(*e) {
+                if let Ok((_, _, _)) = selected_query.get_single() {
                     // disable picking a piece when one's already in hand
                     return;
                 }
@@ -137,27 +133,23 @@ pub fn selection(
         &Transform,
         &Mesh2dHandle,
         With<PickableMesh>,
-        With<ActivePiece>,
-        Without<SourcePiece>,
-        Without<SelectedPiece>,
+        WithActivePiece,
     )>,
     mut selected_query: Query<(
         &mut Piece,
         &Transform,
         &Mesh2dHandle,
         With<PickableMesh>,
-        With<SelectedPiece>,
-        Without<SourcePiece>,
-        Without<ActivePiece>,
+        WithSelectedPiece,
     )>,
 ) {
     for event in events.iter() {
         if let PickingEvent::Clicked(e) = event {
             // we're clicking on a placed piece
-            if let Ok((mut active_piece, active_transform, active_mesh, _, _, _, _)) =
+            if let Ok((mut active_piece, active_transform, active_mesh, _, _)) =
                 active_query.get_mut(*e)
             {
-                if let Ok((mut selected_piece, selected_transform, selected_mesh, _, _, _, _)) =
+                if let Ok((mut selected_piece, selected_transform, selected_mesh, _, _)) =
                     selected_query.get_single_mut()
                 {
                     // there's a piece selected / in hand already
@@ -221,7 +213,7 @@ pub fn selection(
                 }
             }
             // there's no piece on the board, only one in hand
-            else if let Ok((mut selected_piece, selected_transform, selected_mesh, _, _, _, _)) =
+            else if let Ok((mut selected_piece, selected_transform, selected_mesh, _, _)) =
                 selected_query.get_single_mut()
             {
                 if selected_transform.translation.x > 360.0
@@ -261,15 +253,9 @@ pub fn selection(
 pub fn piece_movement(
     wnds: Res<Windows>,
     q_camera: Query<(&Camera, &GlobalTransform, With<ChessCamera>)>,
-    mut query: Query<(
-        &mut Transform,
-        With<PickableMesh>,
-        With<SelectedPiece>,
-        Without<ActivePiece>,
-        Without<SourcePiece>,
-    )>,
+    mut query: Query<(&mut Transform, With<PickableMesh>, WithSelectedPiece)>,
 ) {
-    for (mut transform, _, _, _, _) in query.iter_mut() {
+    for (mut transform, _, _) in query.iter_mut() {
         let (camera, camera_transform, _) = q_camera.single();
 
         let wnd = if let RenderTarget::Window(id) = camera.target {
@@ -301,13 +287,11 @@ pub fn cancel_piece_movement(
         &mut Piece,
         &Mesh2dHandle,
         With<PickableMesh>,
-        With<SelectedPiece>,
-        Without<SourcePiece>,
-        Without<ActivePiece>,
+        WithSelectedPiece,
     )>,
     keys: Res<Input<KeyCode>>,
 ) {
-    for (entity, piece, mesh, _, _, _, _) in query.iter_mut() {
+    for (entity, piece, mesh, _, _) in query.iter_mut() {
         if keys.pressed(KeyCode::Escape) {
             if let Some(selected_translation) = piece.selected_translation {
                 commands
@@ -340,31 +324,17 @@ pub fn cancel_piece_movement(
 
 pub fn clear_board(
     mut commands: Commands,
-    mut active_query: Query<(
-        Entity,
-        &Piece,
-        With<PickableMesh>,
-        With<ActivePiece>,
-        Without<SourcePiece>,
-        Without<SelectedPiece>,
-    )>,
-    mut selected_query: Query<(
-        Entity,
-        &Piece,
-        With<PickableMesh>,
-        With<SelectedPiece>,
-        Without<SourcePiece>,
-        Without<ActivePiece>,
-    )>,
+    mut active_query: Query<(Entity, &Piece, With<PickableMesh>, WithActivePiece)>,
+    mut selected_query: Query<(Entity, &Piece, With<PickableMesh>, WithSelectedPiece)>,
     keys: Res<Input<KeyCode>>,
 ) {
-    for (entity, piece, _, _, _, _) in active_query.iter_mut() {
+    for (entity, piece, _, _) in active_query.iter_mut() {
         if keys.pressed(KeyCode::C) || piece.stale {
             commands.entity(entity).despawn_recursive();
         }
     }
 
-    for (entity, piece, _, _, _, _) in selected_query.iter_mut() {
+    for (entity, piece, _, _) in selected_query.iter_mut() {
         if keys.pressed(KeyCode::C) || piece.stale {
             commands.entity(entity).despawn_recursive();
         }
@@ -790,21 +760,14 @@ pub fn starting_positions(
     board: Res<Board>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    query: Query<(
-        Entity,
-        &Piece,
-        With<PickableMesh>,
-        With<ActivePiece>,
-        Without<SourcePiece>,
-        Without<SelectedPiece>,
-    )>,
+    query: Query<(Entity, &Piece, With<PickableMesh>, WithActivePiece)>,
     keys: Res<Input<KeyCode>>,
 ) {
     if !keys.pressed(KeyCode::I) {
         return;
     }
 
-    for (entity, _piece, _, _, _, _) in query.iter() {
+    for (entity, _piece, _, _) in query.iter() {
         commands.entity(entity).despawn_recursive();
     }
 
@@ -1065,7 +1028,7 @@ pub fn starting_positions(
         })
         .insert(Piece {
             def: Side::Black(Kind::Pawn),
-            sprite_handle: bp_material_handle.clone(),
+            sprite_handle: bp_material_handle,
             selected_translation: Some(Vec3::new(
                 board.get("h7").unwrap().x,
                 board.get("h7").unwrap().y,
@@ -1190,7 +1153,7 @@ pub fn starting_positions(
         })
         .insert(Piece {
             def: Side::Black(Kind::Queen),
-            sprite_handle: bq_material_handle.clone(),
+            sprite_handle: bq_material_handle,
             selected_translation: Some(Vec3::new(
                 board.get("d8").unwrap().x,
                 board.get("d8").unwrap().y,
@@ -1221,7 +1184,7 @@ pub fn starting_positions(
         })
         .insert(Piece {
             def: Side::Black(Kind::King),
-            sprite_handle: bk_material_handle.clone(),
+            sprite_handle: bk_material_handle,
             selected_translation: Some(Vec3::new(
                 board.get("e8").unwrap().x,
                 board.get("e8").unwrap().y,
@@ -1252,7 +1215,7 @@ pub fn starting_positions(
         })
         .insert(Piece {
             def: Side::Black(Kind::Bishop),
-            sprite_handle: bb_material_handle.clone(),
+            sprite_handle: bb_material_handle,
             selected_translation: Some(Vec3::new(
                 board.get("f8").unwrap().x,
                 board.get("f8").unwrap().y,
@@ -1283,7 +1246,7 @@ pub fn starting_positions(
         })
         .insert(Piece {
             def: Side::Black(Kind::Knight),
-            sprite_handle: bn_material_handle.clone(),
+            sprite_handle: bn_material_handle,
             selected_translation: Some(Vec3::new(
                 board.get("g8").unwrap().x,
                 board.get("g8").unwrap().y,
@@ -1314,7 +1277,7 @@ pub fn starting_positions(
         })
         .insert(Piece {
             def: Side::Black(Kind::Rook),
-            sprite_handle: br_material_handle.clone(),
+            sprite_handle: br_material_handle,
             selected_translation: Some(Vec3::new(
                 board.get("h8").unwrap().x,
                 board.get("h8").unwrap().y,
@@ -1563,7 +1526,7 @@ pub fn starting_positions(
         })
         .insert(Piece {
             def: Side::White(Kind::Pawn),
-            sprite_handle: wp_material_handle.clone(),
+            sprite_handle: wp_material_handle,
             selected_translation: Some(Vec3::new(
                 board.get("h2").unwrap().x,
                 board.get("h2").unwrap().y,
@@ -1688,7 +1651,7 @@ pub fn starting_positions(
         })
         .insert(Piece {
             def: Side::White(Kind::Queen),
-            sprite_handle: wq_material_handle.clone(),
+            sprite_handle: wq_material_handle,
             selected_translation: Some(Vec3::new(
                 board.get("d1").unwrap().x,
                 board.get("d1").unwrap().y,
@@ -1719,7 +1682,7 @@ pub fn starting_positions(
         })
         .insert(Piece {
             def: Side::White(Kind::King),
-            sprite_handle: wk_material_handle.clone(),
+            sprite_handle: wk_material_handle,
             selected_translation: Some(Vec3::new(
                 board.get("e1").unwrap().x,
                 board.get("e1").unwrap().y,
@@ -1750,7 +1713,7 @@ pub fn starting_positions(
         })
         .insert(Piece {
             def: Side::White(Kind::Bishop),
-            sprite_handle: wb_material_handle.clone(),
+            sprite_handle: wb_material_handle,
             selected_translation: Some(Vec3::new(
                 board.get("f1").unwrap().x,
                 board.get("f1").unwrap().y,
@@ -1781,7 +1744,7 @@ pub fn starting_positions(
         })
         .insert(Piece {
             def: Side::White(Kind::Knight),
-            sprite_handle: wn_material_handle.clone(),
+            sprite_handle: wn_material_handle,
             selected_translation: Some(Vec3::new(
                 board.get("g1").unwrap().x,
                 board.get("g1").unwrap().y,
@@ -1812,7 +1775,7 @@ pub fn starting_positions(
         })
         .insert(Piece {
             def: Side::White(Kind::Rook),
-            sprite_handle: wr_material_handle.clone(),
+            sprite_handle: wr_material_handle,
             selected_translation: Some(Vec3::new(
                 board.get("h1").unwrap().x,
                 board.get("h1").unwrap().y,

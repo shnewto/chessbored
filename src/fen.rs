@@ -1,10 +1,11 @@
-use bevy::prelude::*;
-
 use crate::{
     assets::FenAssets,
     board::{get_square, File, Rank, Square},
-    pieces::{ActivePiece, Piece, SelectedPiece, SourcePiece},
+    pieces::Piece,
+    types::{ButtonInteraction, WithActivePiece},
 };
+use bevy::prelude::*;
+use std::fmt::Write as _;
 
 #[derive(Component)]
 pub struct FenElement;
@@ -98,8 +99,6 @@ pub fn spawn(mut commands: Commands, fen_assets: Res<FenAssets>) {
         });
 }
 
-type ButtonInteraction<'a> = (&'a Interaction, &'a Children);
-
 pub fn copy_to_clipboard(
     mut clipboard: ResMut<bevy_egui::EguiClipboard>,
     interaction_query: Query<ButtonInteraction, (Changed<Interaction>, With<FenElement>)>,
@@ -121,38 +120,25 @@ pub fn copy_to_clipboard(
 
 pub fn generate_fen(
     mut text_query: Query<&mut Text, With<FenText>>,
-    active_pieces_query: Query<(
-        &Piece,
-        &Transform,
-        With<ActivePiece>,
-        Without<SourcePiece>,
-        Without<SelectedPiece>,
-    )>,
+    active_pieces_query: Query<(&Piece, &Transform, WithActivePiece)>,
 ) {
-    // let mut fen = "8/8/8/8/8/8/8/8".to_string();
-
     let mut occupied_positions: Vec<(Piece, Square)> = vec![];
-    for (piece, transform, _, _, _) in active_pieces_query.iter() {
+    for (piece, transform, _) in active_pieces_query.iter() {
         if let Some(square) = get_square(transform.translation.x, transform.translation.y) {
             occupied_positions.push((piece.clone(), square));
         }
     }
 
-    // let pieces_on_file: Vec<(Piece, Square)> = occupied_positions
-    // .into_iter()
-    // .filter(|(_, square)| square.file == *file)
-    // .collect();
-
     let fen = &format!(
         "{}/{}/{}/{}/{}/{}/{}/{}",
-        get_fen_for_file(&File::EIGHT, occupied_positions.clone()),
-        get_fen_for_file(&File::SEVEN, occupied_positions.clone()),
-        get_fen_for_file(&File::SIX, occupied_positions.clone()),
-        get_fen_for_file(&File::FIVE, occupied_positions.clone()),
-        get_fen_for_file(&File::FOUR, occupied_positions.clone()),
-        get_fen_for_file(&File::THREE, occupied_positions.clone()),
-        get_fen_for_file(&File::TWO, occupied_positions.clone()),
-        get_fen_for_file(&File::ONE, occupied_positions.clone()),
+        get_fen_for_file(&File::Eight, occupied_positions.clone()),
+        get_fen_for_file(&File::Seven, occupied_positions.clone()),
+        get_fen_for_file(&File::Six, occupied_positions.clone()),
+        get_fen_for_file(&File::Five, occupied_positions.clone()),
+        get_fen_for_file(&File::Four, occupied_positions.clone()),
+        get_fen_for_file(&File::Three, occupied_positions.clone()),
+        get_fen_for_file(&File::Two, occupied_positions.clone()),
+        get_fen_for_file(&File::One, occupied_positions.clone()),
     );
     if let Ok(mut text) = text_query.get_single_mut() {
         text.sections[0].value = fen.into();
@@ -162,17 +148,17 @@ pub fn generate_fen(
 fn fen_str(p: Piece, curr_empty_count: usize) -> String {
     let mut res = String::new();
     if curr_empty_count != 0 {
-        res += &format!("{}", curr_empty_count);
+        let _ = write!(res, "{}", curr_empty_count);
     }
     res += p.def.fen_str();
     res
 }
 
 fn piece_on_given_square(
-    pieces_on_file: &Vec<(Piece, Square)>,
+    pieces_on_file: &[(Piece, Square)],
     given_square: Square,
 ) -> Option<Piece> {
-    if let Some((piece, _)) = pieces_on_file.into_iter().find(|e| e.1 == given_square) {
+    if let Some((piece, _)) = pieces_on_file.iter().find(|e| e.1 == given_square) {
         Some(piece.clone())
     } else {
         None
@@ -294,7 +280,7 @@ fn get_fen_for_file(file: &File, occupied_positions: Vec<(Piece, Square)>) -> St
     }
 
     if curr_empty_count != 0 {
-        fen_for_file += &format!("{}", curr_empty_count);
+        let _ = &write!(fen_for_file, "{}", curr_empty_count);
     }
 
     fen_for_file

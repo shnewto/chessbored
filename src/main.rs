@@ -5,16 +5,17 @@ use bevy_mod_picking::*;
 mod assets;
 mod board;
 mod camera;
+mod fen;
 mod pieces;
 mod state;
-mod fen;
+mod types;
 
 pub fn main() {
     let clear_color_hex_string = "69696b";
     App::new()
         .insert_resource(assets::BoardAssets::default())
-        .insert_resource(assets::FenAssets::default()) 
-        .insert_resource(board::Board::default())
+        .insert_resource(assets::FenAssets::default())
+        .insert_resource(types::Board::default())
         .insert_resource(WindowDescriptor {
             width: 720.,
             height: 640.,
@@ -52,7 +53,10 @@ pub fn main() {
                 .label("piece_selection"),
         )
         .add_system_set(
-            SystemSet::on_exit(state::ChessState::Loading).with_system(fen::spawn).label("fen").after("piece_selection"),
+            SystemSet::on_exit(state::ChessState::Loading)
+                .with_system(fen::spawn)
+                .label("fen")
+                .after("piece_selection"),
         )
         .add_system_set(
             SystemSet::on_exit(state::ChessState::Loading)
@@ -70,7 +74,7 @@ pub fn main() {
         .run();
 }
 
-fn setup(mut board: ResMut<board::Board>, mut state: ResMut<State<state::ChessState>>) {
+fn setup(mut board: ResMut<types::Board>, mut state: ResMut<State<state::ChessState>>) {
     *board = board::board_map();
     state.set(state::ChessState::Loading).unwrap();
 }

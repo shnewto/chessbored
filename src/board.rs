@@ -1,9 +1,7 @@
 use bevy::prelude::*;
 use std::collections::HashMap;
 
-use crate::assets::BoardAssets;
-
-pub type Board = HashMap<&'static str, Vec2>;
+use crate::{assets::BoardAssets, types::Board};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Rank {
@@ -19,14 +17,14 @@ pub enum Rank {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum File {
-    ONE,
-    TWO,
-    THREE,
-    FOUR,
-    FIVE,
-    SIX,
-    SEVEN,
-    EIGHT,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven,
+    Eight,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -63,21 +61,21 @@ pub fn get_square(x: f32, y: f32) -> Option<Square> {
         };
 
         let file = if y <= 15.0 {
-            File::ONE
+            File::One
         } else if y <= 65.0 {
-            File::TWO
+            File::Two
         } else if y <= 115.0 {
-            File::THREE
+            File::Three
         } else if y <= 165.0 {
-            File::FOUR
+            File::Four
         } else if y <= 215.0 {
-            File::FIVE
+            File::Five
         } else if y <= 265.0 {
-            File::SIX
+            File::Six
         } else if y <= 315.0 {
-            File::SEVEN
+            File::Seven
         } else {
-            File::EIGHT
+            File::Eight
         };
 
         Some(Square::new(rank, file))

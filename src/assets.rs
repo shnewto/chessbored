@@ -25,7 +25,11 @@ pub struct FenAssets {
     pub tool_tip_font_handle: Handle<Font>,
 }
 
-pub fn load_assets(asset_server: Res<AssetServer>, mut board_assets: ResMut<BoardAssets>, mut fen_assets: ResMut<FenAssets>,) {
+pub fn load_assets(
+    asset_server: Res<AssetServer>,
+    mut board_assets: ResMut<BoardAssets>,
+    mut fen_assets: ResMut<FenAssets>,
+) {
     board_assets.dark_square_handle = asset_server.load("board/dark-square.png");
     board_assets.light_square_handle = asset_server.load("board/light-square.png");
     board_assets.bp = asset_server.load("pieces/bp.png");
@@ -41,10 +45,9 @@ pub fn load_assets(asset_server: Res<AssetServer>, mut board_assets: ResMut<Boar
     board_assets.wb = asset_server.load("pieces/wb.png");
     board_assets.wq = asset_server.load("pieces/wq.png");
     board_assets.wk = asset_server.load("pieces/wk.png");
-    
+
     fen_assets.fen_font_handle = asset_server.load("font/RobotoMono-Bold.ttf");
     fen_assets.tool_tip_font_handle = asset_server.load("font/RobotoMono-Italic.ttf")
-    
 }
 
 pub fn check_assets(

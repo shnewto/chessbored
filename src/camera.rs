@@ -8,10 +8,10 @@ pub struct ChessCamera;
 pub fn setup(mut commands: Commands) {
     let mut camera = OrthographicCameraBundle::new_2d();
     camera.transform = Transform::from_xyz(175.0, 175.0, 10.0);
-    
+
     commands
-    .spawn()
-    .insert_bundle(camera)
-    .insert_bundle(PickingCameraBundle::default())
-    .insert(ChessCamera);
+        .spawn()
+        .insert_bundle(camera)
+        .insert_bundle(PickingCameraBundle::default())
+        .insert(ChessCamera);
 }
