@@ -1,4 +1,5 @@
 use bevy::{prelude::*, window::PresentMode};
+use bevy_egui::EguiPlugin;
 use bevy_mod_picking::*;
 
 mod assets;
@@ -6,11 +7,13 @@ mod board;
 mod camera;
 mod pieces;
 mod state;
+mod fen;
 
 pub fn main() {
     let clear_color_hex_string = "69696b";
     App::new()
         .insert_resource(assets::BoardAssets::default())
+        .insert_resource(assets::FenAssets::default()) 
         .insert_resource(board::Board::default())
         .insert_resource(WindowDescriptor {
             width: 720.,
@@ -28,6 +31,7 @@ pub fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(PickingPlugin)
         .add_plugin(InteractablePickingPlugin)
+        .add_plugin(EguiPlugin)
         // .add_plugin(DebugEventsPickingPlugin)
         .add_system_set(SystemSet::on_update(state::ChessState::Setup).with_system(setup))
         .add_system_set(
@@ -48,14 +52,18 @@ pub fn main() {
                 .label("piece_selection"),
         )
         .add_system_set(
+            SystemSet::on_exit(state::ChessState::Loading).with_system(fen::spawn).label("fen").after("piece_selection"),
+        )
+        .add_system_set(
             SystemSet::on_exit(state::ChessState::Loading)
                 .with_system(camera::setup)
-                .after("piece_selection"),
+                .after("fen"),
         )
         .add_system_to_stage(CoreStage::Update, pieces::cancel_piece_movement)
         .add_system_to_stage(CoreStage::Update, pieces::starting_positions)
         .add_system_to_stage(CoreStage::Update, pieces::selection)
         .add_system_to_stage(CoreStage::Update, pieces::side_piece_selection)
+        .add_system_to_stage(CoreStage::Update, fen::copy_to_clipboard)
         .add_system_to_stage(CoreStage::PostUpdate, pieces::clear_board)
         .add_system_to_stage(CoreStage::Last, pieces::piece_movement)
         .run();

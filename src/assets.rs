@@ -19,7 +19,13 @@ pub struct BoardAssets {
     pub wk: Handle<Image>,
 }
 
-pub fn load_assets(asset_server: Res<AssetServer>, mut board_assets: ResMut<BoardAssets>) {
+#[derive(Component, Debug, Clone, Default)]
+pub struct FenAssets {
+    pub fen_font_handle: Handle<Font>,
+    pub tool_tip_font_handle: Handle<Font>,
+}
+
+pub fn load_assets(asset_server: Res<AssetServer>, mut board_assets: ResMut<BoardAssets>, mut fen_assets: ResMut<FenAssets>,) {
     board_assets.dark_square_handle = asset_server.load("board/dark-square.png");
     board_assets.light_square_handle = asset_server.load("board/light-square.png");
     board_assets.bp = asset_server.load("pieces/bp.png");
@@ -35,14 +41,21 @@ pub fn load_assets(asset_server: Res<AssetServer>, mut board_assets: ResMut<Boar
     board_assets.wb = asset_server.load("pieces/wb.png");
     board_assets.wq = asset_server.load("pieces/wq.png");
     board_assets.wk = asset_server.load("pieces/wk.png");
+    
+    fen_assets.fen_font_handle = asset_server.load("font/RobotoMono-Bold.ttf");
+    fen_assets.tool_tip_font_handle = asset_server.load("font/RobotoMono-Italic.ttf")
+    
 }
 
 pub fn check_assets(
     mut state: ResMut<State<ChessState>>,
     asset_server: Res<AssetServer>,
     board_assets: Res<BoardAssets>,
+    fen_assets: Res<FenAssets>,
 ) {
     if let (
+        LoadState::Loaded,
+        LoadState::Loaded,
         LoadState::Loaded,
         LoadState::Loaded,
         LoadState::Loaded,
@@ -72,6 +85,8 @@ pub fn check_assets(
         asset_server.get_load_state(&board_assets.wb),
         asset_server.get_load_state(&board_assets.wq),
         asset_server.get_load_state(&board_assets.wk),
+        asset_server.get_load_state(&fen_assets.fen_font_handle),
+        asset_server.get_load_state(&fen_assets.tool_tip_font_handle),
     ) {
         state.set(ChessState::Loaded).unwrap();
     }

@@ -15,9 +15,6 @@ codegen-units = 1
 opt-level = "z"
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false, features = [
-    "render",
-    "bevy_winit",
-    "png"
-] }
-bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", branch = "main" }
+bevy = "0.7.0"
+bevy_mod_picking = "0.7.0"
+bevy_egui = "0.14.0"

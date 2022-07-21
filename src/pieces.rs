@@ -135,19 +135,14 @@ pub fn selection(
             if let Ok((mut active_piece, active_transform, active_mesh, _, _, _, _)) =
                 active_query.get_mut(*e)
             {
-                if let Ok((
-                    mut selected_piece,
-                    selected_transform,
-                    selected_mesh,
-                    _,
-                    _,
-                    _,
-                    _,
-                )) = selected_query.get_single_mut()
+                if let Ok((mut selected_piece, selected_transform, selected_mesh, _, _, _, _)) =
+                    selected_query.get_single_mut()
                 {
                     // there's a piece selected / in hand already
 
-                    if selected_transform.translation.x > 360.0 {
+                    if selected_transform.translation.x > 360.0
+                        || selected_transform.translation.y < -10.0
+                    {
                         // don't allow grabbing more pieces from the when an piece is already in hand
                         return;
                     }
@@ -174,8 +169,8 @@ pub fn selection(
                             ..default()
                         })
                         .insert(ActivePiece);
-                        active_piece.stale = true;
-                        selected_piece.stale = true;
+                    active_piece.stale = true;
+                    selected_piece.stale = true;
                 } else {
                     // there's no piece in hand so put the current selection in hand
                     commands
@@ -200,21 +195,16 @@ pub fn selection(
                             ..default()
                         })
                         .insert(SelectedPiece);
-                        active_piece.stale = true;
+                    active_piece.stale = true;
                 }
             }
             // there's no piece on the board, only one in hand
-            else if let Ok((
-                mut selected_piece,
-                selected_transform,
-                selected_mesh,
-                _,
-                _,
-                _,
-                _,
-            )) = selected_query.get_single_mut()
+            else if let Ok((mut selected_piece, selected_transform, selected_mesh, _, _, _, _)) =
+                selected_query.get_single_mut()
             {
-                if selected_transform.translation.x > 360.0 {
+                if selected_transform.translation.x > 360.0
+                    || selected_transform.translation.y < -10.0
+                {
                     // don't allow placing on the right side of the board where the piece selections are
                     return;
                 }
@@ -240,7 +230,7 @@ pub fn selection(
                         ..default()
                     })
                     .insert(ActivePiece);
-                    selected_piece.stale = true;
+                selected_piece.stale = true;
             }
         }
     }
@@ -272,7 +262,7 @@ pub fn piece_movement(
             let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
 
             let ndc_to_world =
-                camera_transform.compute_matrix() * camera.projection_matrix().inverse();
+                camera_transform.compute_matrix() * camera.projection_matrix.inverse();
 
             let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
 
