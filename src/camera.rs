@@ -6,10 +6,9 @@ use bevy_mod_picking::*;
 pub struct ChessCamera;
 
 pub fn setup(mut commands: Commands) {
-    let camera = Camera2dBundle {
-        transform: Transform::from_xyz(175.0, 175.0, 10.0),
-        ..default()
-    };
+    let mut camera = OrthographicCameraBundle::new_2d();
+    camera.transform = Transform::from_xyz(175.0, 175.0, 10.0);
+
     commands
         .spawn()
         .insert_bundle(camera)

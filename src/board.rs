@@ -1,9 +1,88 @@
 use bevy::prelude::*;
 use std::collections::HashMap;
 
-use crate::assets::BoardAssets;
+use crate::{assets::BoardAssets, types::Board};
 
-pub type Board = HashMap<&'static str, Vec2>;
+#[derive(Debug, Clone, PartialEq)]
+pub enum Rank {
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum File {
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven,
+    Eight,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Square {
+    pub rank: Rank,
+    pub file: File,
+}
+
+impl Square {
+    pub fn new(rank: Rank, file: File) -> Square {
+        Square { rank, file }
+    }
+}
+
+pub fn get_square(x: f32, y: f32) -> Option<Square> {
+    // on the board
+    if y >= -25.0 && x >= -25.0 && y <= 365.0 && x <= 365.0 {
+        let rank = if x <= 15.0 {
+            Rank::A
+        } else if x <= 65.0 {
+            Rank::B
+        } else if x <= 115.0 {
+            Rank::C
+        } else if x <= 165.0 {
+            Rank::D
+        } else if x <= 215.0 {
+            Rank::E
+        } else if x <= 265.0 {
+            Rank::F
+        } else if x <= 315.0 {
+            Rank::G
+        } else {
+            Rank::H
+        };
+
+        let file = if y <= 15.0 {
+            File::One
+        } else if y <= 65.0 {
+            File::Two
+        } else if y <= 115.0 {
+            File::Three
+        } else if y <= 165.0 {
+            File::Four
+        } else if y <= 215.0 {
+            File::Five
+        } else if y <= 265.0 {
+            File::Six
+        } else if y <= 315.0 {
+            File::Seven
+        } else {
+            File::Eight
+        };
+
+        Some(Square::new(rank, file))
+    } else {
+        None
+    }
+}
 
 pub fn board_map() -> Board {
     let mut board = HashMap::new();
