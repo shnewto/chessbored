@@ -6,7 +6,7 @@ use bevy::{
 };
 use bevy_mod_picking::*;
 
-use crate::{assets::BoardAssets, board::Board, camera::ChessCamera};
+use crate::{assets::BoardAssets, board::{Board, self}, camera::ChessCamera};
 
 #[derive(Debug, Clone)]
 pub enum Side {

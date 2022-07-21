@@ -1,6 +1,7 @@
 use bevy::prelude::*;
+use bevy_mod_picking::PickableMesh;
 
-use crate::assets::FenAssets;
+use crate::{assets::FenAssets, pieces::{Piece, ActivePiece, SourcePiece, SelectedPiece}};
 
 #[derive(Component)]
 pub struct Fen;
@@ -100,4 +101,18 @@ pub fn copy_to_clipboard(
             Interaction::None => {}
         }
     }
+}
+
+pub fn generate_fen(
+    mut active_pieces_query: Query<(
+        Entity,
+        &Piece,
+        With<PickableMesh>,
+        With<ActivePiece>,
+        Without<SourcePiece>,
+        Without<SelectedPiece>,
+    )>,
+){
+    
+    
 }

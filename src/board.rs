@@ -5,6 +5,87 @@ use crate::assets::BoardAssets;
 
 pub type Board = HashMap<&'static str, Vec2>;
 
+#[derive(Debug, Clone)]
+pub enum Rank {
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+}
+
+#[derive(Debug, Clone)]
+pub enum File {
+    ONE,
+    TWO,
+    THREE,
+    FOUR,
+    FIVE,
+    SIX,
+    SEVEN,
+    EIGHT,
+}
+
+#[derive(Debug, Clone)]
+pub struct Square {
+    pub rank: Rank,
+    pub file: File,
+}
+
+impl Square {
+    pub fn new(rank: Rank, file: File) -> Square {
+        Square { rank, file }
+    }
+}
+
+pub fn get_square(x: f32, y: f32) -> Option<Square> {
+    // on the board
+    if y >= -25.0 && x >= -25.0 && y <= 365.0 && x <= 365.0 {
+        let rank = if x <= 15.0 {
+            Rank::A
+        } else if x <= 65.0 {
+            Rank::B
+        } else if x <= 115.0 {
+            Rank::C
+        } else if x <= 165.0 {
+            Rank::D
+        } else if x <= 215.0 {
+            Rank::E
+        } else if x <= 265.0 {
+            Rank::F
+        } else if x <= 315.0 {
+            Rank::G
+        } else {
+            Rank::H
+        };
+
+        let file = if y <= 15.0 {
+            File::ONE
+        } else if y <= 65.0 {
+            File::TWO
+        } else if y <= 115.0 {
+            File::THREE
+        } else if y <= 165.0 {
+            File::FOUR
+        } else if y <= 215.0 {
+            File::FIVE
+        } else if y <= 265.0 {
+            File::SIX
+        } else if y <= 315.0 {
+            File::SEVEN
+        } else {
+            File::EIGHT
+        };
+
+        Some(Square::new(rank, file))
+    } else {
+        None
+    }
+}
+
 pub fn board_map() -> Board {
     let mut board = HashMap::new();
 
