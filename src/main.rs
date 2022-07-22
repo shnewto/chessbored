@@ -9,12 +9,13 @@ mod fen;
 mod pieces;
 mod state;
 mod types;
+mod tips;
 
 pub fn main() {
     let clear_color_hex_string = "69696b";
     App::new()
         .insert_resource(assets::BoardAssets::default())
-        .insert_resource(assets::FenAssets::default())
+        .insert_resource(assets::TextAssets::default())
         .insert_resource(types::Board::default())
         .insert_resource(WindowDescriptor {
             width: 720.,
@@ -54,14 +55,26 @@ pub fn main() {
         )
         .add_system_set(
             SystemSet::on_exit(state::ChessState::Loading)
-                .with_system(fen::spawn)
-                .label("fen")
+                .with_system(camera::spawn_ui_camera)
+                .label("spawn_ui_camera")
                 .after("piece_selection"),
         )
         .add_system_set(
             SystemSet::on_exit(state::ChessState::Loading)
-                .with_system(camera::setup)
+                .with_system(fen::spawn)
+                .label("fen")
+                .after("spawn_ui_camera"),
+        )
+        .add_system_set(
+            SystemSet::on_exit(state::ChessState::Loading)
+                .with_system(tips::spawn)
+                .label("tips")
                 .after("fen"),
+        )
+        .add_system_set(
+            SystemSet::on_exit(state::ChessState::Loading)
+                .with_system(camera::setup)
+                .after("tips"),
         )
         .add_system_to_stage(CoreStage::Update, pieces::cancel_piece_movement)
         .add_system_to_stage(CoreStage::Update, pieces::starting_positions)

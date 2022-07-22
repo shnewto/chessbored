@@ -15,3 +15,7 @@ pub fn setup(mut commands: Commands) {
         .insert_bundle(PickingCameraBundle::default())
         .insert(ChessCamera);
 }
+
+pub fn spawn_ui_camera(mut commands: Commands) {
+    commands.spawn_bundle(UiCameraBundle::default());
+}

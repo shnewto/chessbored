@@ -1,5 +1,5 @@
 use crate::{
-    assets::FenAssets,
+    assets::TextAssets,
     board::{get_square, File, Rank, Square},
     pieces::Piece,
     types::{ButtonInteraction, WithActivePiece},
@@ -13,8 +13,7 @@ pub struct FenElement;
 #[derive(Component)]
 pub struct FenText;
 
-pub fn spawn(mut commands: Commands, fen_assets: Res<FenAssets>) {
-    commands.spawn_bundle(UiCameraBundle::default());
+pub fn spawn(mut commands: Commands, fen_assets: Res<TextAssets>) {
     commands
         .spawn_bundle(ButtonBundle {
             style: Style {
@@ -40,7 +39,7 @@ pub fn spawn(mut commands: Commands, fen_assets: Res<FenAssets>) {
                         sections: vec![TextSection {
                             value: "FEN NOTATION".to_string(),
                             style: TextStyle {
-                                font: fen_assets.fen_font_handle.clone(),
+                                font: fen_assets.regular_font_handle.clone(),
                                 font_size: 12.0,
                                 color: Color::rgb(0.9, 0.9, 0.9),
                             },
@@ -84,7 +83,7 @@ pub fn spawn(mut commands: Commands, fen_assets: Res<FenAssets>) {
                     sections: vec![TextSection {
                         value: "(click to copy)".to_string(),
                         style: TextStyle {
-                            font: fen_assets.tool_tip_font_handle.clone(),
+                            font: fen_assets.italic_font_handle.clone(),
                             font_size: 10.0,
                             color: Color::rgb(0.15, 0.15, 0.15),
                         },
