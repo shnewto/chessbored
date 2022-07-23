@@ -1,6 +1,4 @@
-use crate::{
-    assets::TextAssets,
-};
+use crate::assets::TextAssets;
 use bevy::prelude::*;
 use indoc::indoc;
 

@@ -1,5 +1,6 @@
 use bevy::{prelude::*, window::PresentMode};
 use bevy_egui::EguiPlugin;
+// use bevy_egui::EguiPlugin;
 use bevy_mod_picking::*;
 
 mod assets;
@@ -8,8 +9,8 @@ mod camera;
 mod fen;
 mod pieces;
 mod state;
-mod types;
 mod tips;
+mod types;
 
 pub fn main() {
     let clear_color_hex_string = "69696b";

@@ -13,6 +13,12 @@ pub struct FenElement;
 #[derive(Component)]
 pub struct FenText;
 
+#[derive(Component)]
+pub struct CopyText;
+
+#[derive(Component)]
+pub struct CopyElement;
+
 pub fn spawn(mut commands: Commands, fen_assets: Res<TextAssets>) {
     commands
         .spawn_bundle(ButtonBundle {
@@ -101,18 +107,24 @@ pub fn spawn(mut commands: Commands, fen_assets: Res<TextAssets>) {
 pub fn copy_to_clipboard(
     mut clipboard: ResMut<bevy_egui::EguiClipboard>,
     interaction_query: Query<ButtonInteraction, (Changed<Interaction>, With<FenElement>)>,
-    text_query: Query<&Text>,
+    mut fen_text_query: Query<&mut Text, (Without<CopyElement>, Without<CopyText>)>,
 ) {
+    let clicked_color_hex_string = "f803fc";
     for (interaction, children) in interaction_query.iter() {
-        let text = text_query.get(children[0]).unwrap();
+        if let Ok(mut text) = fen_text_query.get_mut(children[0]) {
+            match *interaction {
+                Interaction::Clicked => {
+                    clipboard.set_contents(&text.sections[0].value);
+                    text.sections[0].style.color = Color::hex(clicked_color_hex_string)
+                        .unwrap_or_else(|_| {
+                            panic!("couldn't make hex color from {}", clicked_color_hex_string)
+                        })
+                }
 
-        match *interaction {
-            Interaction::Clicked => {
-                clipboard.set_contents(&text.sections[0].value);
+                Interaction::None | Interaction::Hovered => {
+                    text.sections[0].style.color = Color::rgb(0.9, 0.9, 0.9)
+                }
             }
-
-            Interaction::Hovered => {}
-            Interaction::None => {}
         }
     }
 }
