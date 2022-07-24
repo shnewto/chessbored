@@ -15,8 +15,14 @@ a chess board with movable pieces that behaves like a chessboard on the table. u
 
 <https://chessbored.shnewto.space>
 
+## installing
+
+```bash
+cargo install chessbored
+```
+
 ## running locally
 
-```rust
+```bash
 cargo run
 ```
