@@ -12,6 +12,17 @@ keywords = ["chess", "board", "FEN", "bevy", "chessboard"]
 homepage = "https://github.com/shnewto/chessbored"
 repository = "https://github.com/shnewto/chessbored"
 
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.dev]
+opt-level = 1
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "z"
+
 [dependencies]
 bevy = "0.8.0"
 bevy_mod_picking = "0.8.0"
