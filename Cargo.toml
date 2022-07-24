@@ -3,9 +3,14 @@ name = "chessbored"
 version = "0.1.0"
 edition = "2021"
 
+license = "MIT"
+
 description = "a chess board with movable pieces that behaves like a chessboard on the table."
 readme = "README.md"
 keywords = ["chess", "board", "FEN", "bevy", "chessboard"]
+
+homepage = "https://github.com/shnewto/bnf"
+repository = "https://github.com/shnewto/bnf"
 
 [dependencies]
 bevy = "0.7.0"
