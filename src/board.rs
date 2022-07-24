@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt};
 
 use crate::{assets::BoardAssets, types::Board};
 
@@ -15,6 +15,21 @@ pub enum Rank {
     H,
 }
 
+impl fmt::Display for Rank {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Rank::A => fmt.write_str("a"),
+            Rank::B => fmt.write_str("b"),
+            Rank::C => fmt.write_str("c"),
+            Rank::D => fmt.write_str("d"),
+            Rank::E => fmt.write_str("e"),
+            Rank::F => fmt.write_str("f"),
+            Rank::G => fmt.write_str("g"),
+            Rank::H => fmt.write_str("h"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum File {
     One,
@@ -27,10 +42,31 @@ pub enum File {
     Eight,
 }
 
+impl fmt::Display for File {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            File::One => fmt.write_str("1"),
+            File::Two => fmt.write_str("2"),
+            File::Three => fmt.write_str("3"),
+            File::Four => fmt.write_str("4"),
+            File::Five => fmt.write_str("5"),
+            File::Six => fmt.write_str("6"),
+            File::Seven => fmt.write_str("7"),
+            File::Eight => fmt.write_str("8"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Square {
     pub rank: Rank,
     pub file: File,
+}
+
+impl fmt::Display for Square {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "{}{}", self.rank, self.file)
+    }
 }
 
 impl Square {

@@ -8,6 +8,7 @@ use bevy_mod_picking::*;
 
 use crate::{
     assets::BoardAssets,
+    board::get_square,
     camera::ChessCamera,
     types::{Board, WithActivePiece, WithSelectedPiece, WithSourcePiece},
 };
@@ -126,6 +127,7 @@ pub fn side_piece_selection(
 }
 
 pub fn selection(
+    board: Res<Board>,
     mut commands: Commands,
     mut events: EventReader<PickingEvent>,
     mut active_query: Query<(
@@ -161,14 +163,25 @@ pub fn selection(
                         return;
                     }
 
+                    let (updated_x, updated_y) = if let Some(square) = get_square(
+                        selected_transform.translation.x,
+                        selected_transform.translation.y,
+                    ) {
+                        (
+                            board.get(&*square.to_string()).unwrap().x,
+                            board.get(&*square.to_string()).unwrap().y,
+                        )
+                    } else {
+                        (
+                            selected_transform.translation.x,
+                            selected_transform.translation.y,
+                        )
+                    };
+
                     commands
                         .spawn_bundle(MaterialMesh2dBundle {
                             mesh: selected_mesh.clone(),
-                            transform: Transform::from_xyz(
-                                selected_transform.translation.x,
-                                selected_transform.translation.y,
-                                0.0,
-                            ),
+                            transform: Transform::from_xyz(updated_x, updated_y, 0.0),
                             material: selected_piece.sprite_handle.clone(),
                             ..default()
                         })
@@ -222,14 +235,26 @@ pub fn selection(
                     // don't allow placing on the right side of the board where the piece selections are
                     return;
                 }
+
+                let (updated_x, updated_y) = if let Some(square) = get_square(
+                    selected_transform.translation.x,
+                    selected_transform.translation.y,
+                ) {
+                    (
+                        board.get(&*square.to_string()).unwrap().x,
+                        board.get(&*square.to_string()).unwrap().y,
+                    )
+                } else {
+                    (
+                        selected_transform.translation.x,
+                        selected_transform.translation.y,
+                    )
+                };
+
                 commands
                     .spawn_bundle(MaterialMesh2dBundle {
                         mesh: selected_mesh.clone(),
-                        transform: Transform::from_xyz(
-                            selected_transform.translation.x,
-                            selected_transform.translation.y,
-                            0.0,
-                        ),
+                        transform: Transform::from_xyz(updated_x, updated_y, 0.0),
                         material: selected_piece.sprite_handle.clone(),
                         ..default()
                     })
