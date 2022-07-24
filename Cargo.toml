@@ -9,8 +9,8 @@ description = "a chess board with movable pieces that behaves like a chessboard 
 readme = "README.md"
 keywords = ["chess", "board", "FEN", "bevy", "chessboard"]
 
-homepage = "https://github.com/shnewto/bnf"
-repository = "https://github.com/shnewto/bnf"
+homepage = "https://github.com/shnewto/chessbored"
+repository = "https://github.com/shnewto/chessbored"
 
 [dependencies]
 bevy = "0.7.0"
