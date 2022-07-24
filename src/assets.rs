@@ -1,8 +1,13 @@
 use crate::state::ChessState;
-use bevy::{asset::LoadState, prelude::*};
+use bevy::{
+    prelude::*,
+    render::render_resource::{Extent3d, TextureDimension, TextureFormat},
+};
 
 #[derive(Component, Debug, Default)]
 pub struct BoardAssets {
+    pub dark_square_bytes: Vec<u8>,
+    pub light_square_bytes: Vec<u8>,
     pub dark_square_handle: Handle<Image>,
     pub light_square_handle: Handle<Image>,
     pub bp: Handle<Image>,
@@ -26,71 +31,82 @@ pub struct TextAssets {
 }
 
 pub fn load_assets(
-    asset_server: Res<AssetServer>,
+    mut state: ResMut<State<ChessState>>,
     mut board_assets: ResMut<BoardAssets>,
     mut fen_assets: ResMut<TextAssets>,
+    mut textures: ResMut<Assets<Image>>,
+    mut fonts: ResMut<Assets<Font>>,
 ) {
-    board_assets.dark_square_handle = asset_server.load("board/dark-square.png");
-    board_assets.light_square_handle = asset_server.load("board/light-square.png");
-    board_assets.bp = asset_server.load("pieces/bp.png");
-    board_assets.br = asset_server.load("pieces/br.png");
-    board_assets.bn = asset_server.load("pieces/bn.png");
-    board_assets.bb = asset_server.load("pieces/bb.png");
-    board_assets.bq = asset_server.load("pieces/bq.png");
-    board_assets.bk = asset_server.load("pieces/bk.png");
+    let dark_square_bytes = include_bytes!("../assets/board/dark-square.data");
+    let light_square_bytes = include_bytes!("../assets/board/light-square.data");
+    let bq_bytes = include_bytes!("../assets/pieces/bq.data");
+    let bk_bytes = include_bytes!("../assets/pieces/bk.data");
+    let br_bytes = include_bytes!("../assets/pieces/br.data");
+    let bn_bytes = include_bytes!("../assets/pieces/bn.data");
+    let bb_bytes = include_bytes!("../assets/pieces/bb.data");
+    let bp_bytes = include_bytes!("../assets/pieces/bp.data");
 
-    board_assets.wp = asset_server.load("pieces/wp.png");
-    board_assets.wr = asset_server.load("pieces/wr.png");
-    board_assets.wn = asset_server.load("pieces/wn.png");
-    board_assets.wb = asset_server.load("pieces/wb.png");
-    board_assets.wq = asset_server.load("pieces/wq.png");
-    board_assets.wk = asset_server.load("pieces/wk.png");
+    let wq_bytes = include_bytes!("../assets/pieces/wq.data");
+    let wk_bytes = include_bytes!("../assets/pieces/wk.data");
+    let wr_bytes = include_bytes!("../assets/pieces/wr.data");
+    let wn_bytes = include_bytes!("../assets/pieces/wn.data");
+    let wb_bytes = include_bytes!("../assets/pieces/wb.data");
+    let wp_bytes = include_bytes!("../assets/pieces/wp.data");
 
-    fen_assets.regular_font_handle = asset_server.load("font/RobotMono/RobotoMono-Bold.ttf");
-    fen_assets.italic_font_handle = asset_server.load("font/RobotMono/RobotoMono-Italic.ttf")
-}
+    let to_image = |b: &[u8; 10000]| {
+        bevy::prelude::Image::new(
+            Extent3d {
+                width: 50,
+                height: 50,
+                ..default()
+            },
+            TextureDimension::D2,
+            b.to_vec(),
+            TextureFormat::Rgba8Unorm,
+        )
+    };
 
-pub fn check_assets(
-    mut state: ResMut<State<ChessState>>,
-    asset_server: Res<AssetServer>,
-    board_assets: Res<BoardAssets>,
-    fen_assets: Res<TextAssets>,
-) {
-    if let (
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-        LoadState::Loaded,
-    ) = (
-        asset_server.get_load_state(&board_assets.dark_square_handle),
-        asset_server.get_load_state(&board_assets.light_square_handle),
-        asset_server.get_load_state(&board_assets.bp),
-        asset_server.get_load_state(&board_assets.br),
-        asset_server.get_load_state(&board_assets.bn),
-        asset_server.get_load_state(&board_assets.bb),
-        asset_server.get_load_state(&board_assets.bq),
-        asset_server.get_load_state(&board_assets.bk),
-        asset_server.get_load_state(&board_assets.wp),
-        asset_server.get_load_state(&board_assets.wr),
-        asset_server.get_load_state(&board_assets.wn),
-        asset_server.get_load_state(&board_assets.wb),
-        asset_server.get_load_state(&board_assets.wq),
-        asset_server.get_load_state(&board_assets.wk),
-        asset_server.get_load_state(&fen_assets.regular_font_handle),
-        asset_server.get_load_state(&fen_assets.italic_font_handle),
-    ) {
-        state.set(ChessState::Loaded).unwrap();
-    }
+    let dark_square = to_image(dark_square_bytes);
+    let light_square = to_image(light_square_bytes);
+
+    let bq = to_image(bq_bytes);
+    let bk = to_image(bk_bytes);
+    let br = to_image(br_bytes);
+    let bn = to_image(bn_bytes);
+    let bb = to_image(bb_bytes);
+    let bp = to_image(bp_bytes);
+
+    let wq = to_image(wq_bytes);
+    let wk = to_image(wk_bytes);
+    let wr = to_image(wr_bytes);
+    let wn = to_image(wn_bytes);
+    let wb = to_image(wb_bytes);
+    let wp = to_image(wp_bytes);
+
+    board_assets.dark_square_handle = textures.add(dark_square);
+    board_assets.light_square_handle = textures.add(light_square);
+
+    board_assets.bq = textures.add(bq);
+    board_assets.bk = textures.add(bk);
+    board_assets.br = textures.add(br);
+    board_assets.bn = textures.add(bn);
+    board_assets.bb = textures.add(bb);
+    board_assets.bp = textures.add(bp);
+
+    board_assets.wq = textures.add(wq);
+    board_assets.wk = textures.add(wk);
+    board_assets.wr = textures.add(wr);
+    board_assets.wn = textures.add(wn);
+    board_assets.wb = textures.add(wb);
+    board_assets.wp = textures.add(wp);
+
+    let regular_font_bytes = include_bytes!("../assets/font/RobotMono/RobotoMono-Bold.ttf");
+    let italic_font_bytes = include_bytes!("../assets/font/RobotMono/RobotoMono-Italic.ttf");
+
+    let regular_font = Font::try_from_bytes(regular_font_bytes.to_vec());
+    let italic_font = Font::try_from_bytes(italic_font_bytes.to_vec());
+    fen_assets.regular_font_handle = fonts.add(regular_font.unwrap());
+    fen_assets.italic_font_handle = fonts.add(italic_font.unwrap());
+
+    state.set(ChessState::Loaded).unwrap();
 }

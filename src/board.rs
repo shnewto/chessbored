@@ -215,6 +215,7 @@ pub fn board_map() -> Board {
 
 pub fn setup_board(mut commands: Commands, assets: ResMut<BoardAssets>, board: Res<Board>) {
     let sz = -0.01;
+
     // row 1
     commands.spawn_bundle(SpriteBundle {
         texture: assets.dark_square_handle.clone(),

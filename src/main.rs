@@ -41,9 +41,6 @@ pub fn main() {
             SystemSet::on_enter(state::ChessState::Loading).with_system(assets::load_assets),
         )
         .add_system_set(
-            SystemSet::on_update(state::ChessState::Loading).with_system(assets::check_assets),
-        )
-        .add_system_set(
             SystemSet::on_exit(state::ChessState::Loading)
                 .with_system(board::setup_board)
                 .label("setup_piece_selection"),
