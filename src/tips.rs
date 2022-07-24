@@ -5,6 +5,9 @@ use indoc::indoc;
 #[derive(Component)]
 pub struct TipsText;
 
+#[derive(Component)]
+pub struct TipsElement;
+
 pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
     let clear_color_hex_string = "69696b";
     let tips_text = indoc! {"
@@ -36,6 +39,7 @@ pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
                 .into(),
             ..Default::default()
         })
+        .insert(TipsElement)
         .with_children(|parent| {
             parent.spawn_bundle(TextBundle {
                 text: Text {
@@ -53,6 +57,7 @@ pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
                     },
                 },
                 ..Default::default()
-            });
+            })
+            .insert(TipsText);
         });
 }
