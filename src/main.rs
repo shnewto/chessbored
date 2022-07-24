@@ -21,7 +21,7 @@ pub fn main() {
         .insert_resource(WindowDescriptor {
             width: 720.,
             height: 640.,
-            title: "chessboard".to_string(),
+            title: "chessbored".to_string(),
             present_mode: PresentMode::Fifo,
             ..default()
         })

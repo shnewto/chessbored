@@ -41,23 +41,24 @@ pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
         })
         .insert(TipsElement)
         .with_children(|parent| {
-            parent.spawn_bundle(TextBundle {
-                text: Text {
-                    sections: vec![TextSection {
-                        value: tips_text.to_string(),
-                        style: TextStyle {
-                            font: text_assets.italic_font_handle.clone(),
-                            font_size: 16.0,
-                            color: Color::rgb(0.15, 0.15, 0.15),
+            parent
+                .spawn_bundle(TextBundle {
+                    text: Text {
+                        sections: vec![TextSection {
+                            value: tips_text.to_string(),
+                            style: TextStyle {
+                                font: text_assets.italic_font_handle.clone(),
+                                font_size: 16.0,
+                                color: Color::rgb(0.15, 0.15, 0.15),
+                            },
+                        }],
+                        alignment: TextAlignment {
+                            vertical: VerticalAlign::Center,
+                            horizontal: HorizontalAlign::Left,
                         },
-                    }],
-                    alignment: TextAlignment {
-                        vertical: VerticalAlign::Center,
-                        horizontal: HorizontalAlign::Left,
                     },
-                },
-                ..Default::default()
-            })
-            .insert(TipsText);
+                    ..Default::default()
+                })
+                .insert(TipsText);
         });
 }

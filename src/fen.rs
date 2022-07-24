@@ -116,8 +116,8 @@ pub fn copy_to_clipboard(
     mut fen_text_query: Query<&mut Text, WithFenText>,
     mut copy_text_query: Query<&mut Text, WithCopyText>,
 ) {
-    let clicked_color_hex_string = "aba7b0";
-    let copied_color_hex_string = "d496c5";
+    let clicked_color_hex_string = "a1a1a1";
+    let copied_color_hex_string = "f3f0f5";
     for (interaction, children) in interaction_query.iter() {
         if let (Ok(mut fen_text), Ok(mut copy_text)) = (
             fen_text_query.get_mut(children[0]),
