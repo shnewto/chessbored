@@ -46,8 +46,8 @@ pub fn load_assets(
     board_assets.wq = asset_server.load("pieces/wq.png");
     board_assets.wk = asset_server.load("pieces/wk.png");
 
-    fen_assets.regular_font_handle = asset_server.load("font/RobotoMono-Bold.ttf");
-    fen_assets.italic_font_handle = asset_server.load("font/RobotoMono-Italic.ttf")
+    fen_assets.regular_font_handle = asset_server.load("font/RobotMono/RobotoMono-Bold.ttf");
+    fen_assets.italic_font_handle = asset_server.load("font/RobotMono/RobotoMono-Italic.ttf")
 }
 
 pub fn check_assets(
