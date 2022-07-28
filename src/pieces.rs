@@ -518,8 +518,8 @@ pub fn setup_piece_selection(
             ..default()
         })
         .insert(SourcePiece);
-    // row3 black
 
+    // row3 black
     commands
         .spawn_bundle(MaterialMesh2dBundle {
             mesh: meshes
@@ -585,7 +585,6 @@ pub fn setup_piece_selection(
         .insert(SourcePiece);
 
     // row 1 white
-
     commands
         .spawn_bundle(MaterialMesh2dBundle {
             mesh: meshes
@@ -1147,7 +1146,7 @@ pub fn starting_positions(
         })
         .insert(Piece {
             def: Side::Black(Kind::Bishop),
-            sprite_handle: bn_material_handle.clone(),
+            sprite_handle: bb_material_handle.clone(),
             selected_translation: Some(Vec3::new(
                 board.get("c8").unwrap().x,
                 board.get("c8").unwrap().y,
