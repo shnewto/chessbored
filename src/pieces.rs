@@ -278,9 +278,9 @@ pub fn selection(
 pub fn piece_movement(
     wnds: Res<Windows>,
     q_camera: Query<(&Camera, &GlobalTransform, With<ChessCamera>)>,
-    mut query: Query<(&mut Transform, With<PickableMesh>, WithSelectedPiece)>,
+    mut query: Query<&mut Transform, (With<PickableMesh>, WithSelectedPiece)>,
 ) {
-    for (mut transform, _, _) in query.iter_mut() {
+    for mut transform in query.iter_mut() {
         let (camera, camera_transform, _) = q_camera.single();
 
         let wnd = if let RenderTarget::Window(id) = camera.target {
@@ -293,7 +293,6 @@ pub fn piece_movement(
             let window_size = Vec2::new(wnd.width() as f32, wnd.height() as f32);
 
             let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
-
             let ndc_to_world =
                 camera_transform.compute_matrix() * camera.projection_matrix.inverse();
 

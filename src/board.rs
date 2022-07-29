@@ -78,42 +78,41 @@ impl Square {
 pub fn get_square(x: f32, y: f32) -> Option<Square> {
     // on the board
     if y >= -25.0 && x >= -25.0 && y <= 365.0 && x <= 365.0 {
-        let rank = if x <= 15.0 {
+        let rank = if x <= 25.0 {
             Rank::A
-        } else if x <= 65.0 {
+        } else if x <= 75.0 {
             Rank::B
-        } else if x <= 115.0 {
+        } else if x <= 125.0 {
             Rank::C
-        } else if x <= 165.0 {
+        } else if x <= 175.0 {
             Rank::D
-        } else if x <= 215.0 {
+        } else if x <= 225.0 {
             Rank::E
-        } else if x <= 265.0 {
+        } else if x <= 275.0 {
             Rank::F
-        } else if x <= 315.0 {
+        } else if x <= 325.0 {
             Rank::G
         } else {
             Rank::H
         };
 
-        let file = if y <= 15.0 {
+        let file = if y <= 25.0 {
             File::One
-        } else if y <= 65.0 {
+        } else if y <= 75.0 {
             File::Two
-        } else if y <= 115.0 {
+        } else if y <= 125.0 {
             File::Three
-        } else if y <= 165.0 {
+        } else if y <= 175.0 {
             File::Four
-        } else if y <= 215.0 {
+        } else if y <= 225.0 {
             File::Five
-        } else if y <= 265.0 {
+        } else if y <= 275.0 {
             File::Six
-        } else if y <= 315.0 {
+        } else if y <= 325.0 {
             File::Seven
         } else {
             File::Eight
         };
-
         Some(Square::new(rank, file))
     } else {
         None
