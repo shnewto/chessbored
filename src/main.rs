@@ -2,6 +2,8 @@ use bevy::{prelude::*, window::PresentMode};
 use bevy_egui::EguiPlugin;
 // use bevy_egui::EguiPlugin;
 use bevy_mod_picking::*;
+use fen::SavedFenState;
+use pieces::PieceMaterialHandles;
 
 mod assets;
 mod board;
@@ -18,9 +20,11 @@ pub fn main() {
         .insert_resource(assets::BoardAssets::default())
         .insert_resource(assets::TextAssets::default())
         .insert_resource(types::Board::default())
+        .insert_resource(SavedFenState::default())
+        .insert_resource(PieceMaterialHandles::default())
         .insert_resource(WindowDescriptor {
-            width: 720.,
-            height: 640.,
+            width: 700.,
+            height: 700.,
             title: "chessbored".to_string(),
             present_mode: PresentMode::Fifo,
             ..default()
@@ -43,12 +47,18 @@ pub fn main() {
         .add_system_set(
             SystemSet::on_exit(state::ChessState::Loading)
                 .with_system(board::setup_board)
-                .label("setup_piece_selection"),
+                .label("setup_board"),
+        )
+        .add_system_set(
+            SystemSet::on_exit(state::ChessState::Loading)
+                .with_system(pieces::set_sprite_handles)
+                .label("piece_sprite_handles")
+                .after("setup_board"),
         )
         .add_system_set(
             SystemSet::on_exit(state::ChessState::Loading)
                 .with_system(pieces::setup_piece_selection)
-                .after("setup_piece_selection")
+                .after("piece_sprite_handles")
                 .label("piece_selection"),
         )
         .add_system_set(
@@ -79,6 +89,8 @@ pub fn main() {
         .add_system_to_stage(CoreStage::Update, pieces::selection)
         .add_system_to_stage(CoreStage::Update, pieces::side_piece_selection)
         .add_system_to_stage(CoreStage::Update, fen::generate_fen)
+        .add_system_to_stage(CoreStage::Update, fen::toggle_save_position)
+        .add_system_to_stage(CoreStage::Update, fen::populate_board_from_fen)
         .add_system_to_stage(CoreStage::Update, fen::copy_to_clipboard)
         .add_system_to_stage(CoreStage::PostUpdate, pieces::clear_board)
         .add_system_to_stage(CoreStage::Last, pieces::piece_movement)

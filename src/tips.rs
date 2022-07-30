@@ -17,6 +17,8 @@ pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
         x: remove a selected piece
         c: clear the board
         i: all pieces in 'initial' / starting positions
+        s: save position / clear saved position
+        r: restore saved position
     "};
     commands
         .spawn_bundle(NodeBundle {
@@ -27,7 +29,7 @@ pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
                 align_items: AlignItems::FlexStart,
                 position: Rect {
                     left: Val::Px(30.0),
-                    bottom: Val::Px(535.0),
+                    bottom: Val::Px(570.0),
                     ..default()
                 },
                 ..default()
@@ -48,7 +50,7 @@ pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
                             value: tips_text.to_string(),
                             style: TextStyle {
                                 font: text_assets.italic_font_handle.clone(),
-                                font_size: 16.0,
+                                font_size: 14.0,
                                 color: Color::rgb(0.15, 0.15, 0.15),
                             },
                         }],

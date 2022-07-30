@@ -4,7 +4,7 @@ use std::{collections::HashMap, fmt};
 use crate::{assets::BoardAssets, types::Board};
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Rank {
+pub enum File {
     A,
     B,
     C,
@@ -15,23 +15,23 @@ pub enum Rank {
     H,
 }
 
-impl fmt::Display for Rank {
+impl fmt::Display for File {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Rank::A => fmt.write_str("a"),
-            Rank::B => fmt.write_str("b"),
-            Rank::C => fmt.write_str("c"),
-            Rank::D => fmt.write_str("d"),
-            Rank::E => fmt.write_str("e"),
-            Rank::F => fmt.write_str("f"),
-            Rank::G => fmt.write_str("g"),
-            Rank::H => fmt.write_str("h"),
+            File::A => fmt.write_str("a"),
+            File::B => fmt.write_str("b"),
+            File::C => fmt.write_str("c"),
+            File::D => fmt.write_str("d"),
+            File::E => fmt.write_str("e"),
+            File::F => fmt.write_str("f"),
+            File::G => fmt.write_str("g"),
+            File::H => fmt.write_str("h"),
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum File {
+pub enum Rank {
     One,
     Two,
     Three,
@@ -42,36 +42,39 @@ pub enum File {
     Eight,
 }
 
-impl fmt::Display for File {
+impl fmt::Display for Rank {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            File::One => fmt.write_str("1"),
-            File::Two => fmt.write_str("2"),
-            File::Three => fmt.write_str("3"),
-            File::Four => fmt.write_str("4"),
-            File::Five => fmt.write_str("5"),
-            File::Six => fmt.write_str("6"),
-            File::Seven => fmt.write_str("7"),
-            File::Eight => fmt.write_str("8"),
+            Rank::One => fmt.write_str("1"),
+            Rank::Two => fmt.write_str("2"),
+            Rank::Three => fmt.write_str("3"),
+            Rank::Four => fmt.write_str("4"),
+            Rank::Five => fmt.write_str("5"),
+            Rank::Six => fmt.write_str("6"),
+            Rank::Seven => fmt.write_str("7"),
+            Rank::Eight => fmt.write_str("8"),
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Square {
-    pub rank: Rank,
     pub file: File,
+    pub rank: Rank,
 }
 
 impl fmt::Display for Square {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        write!(fmt, "{}{}", self.rank, self.file)
+        write!(fmt, "{}{}", self.file, self.rank)
     }
 }
 
 impl Square {
-    pub fn new(rank: Rank, file: File) -> Square {
-        Square { rank, file }
+    pub fn new(rank: File, file: Rank) -> Square {
+        Square {
+            file: rank,
+            rank: file,
+        }
     }
 }
 
@@ -79,39 +82,39 @@ pub fn get_square(x: f32, y: f32) -> Option<Square> {
     // on the board
     if y >= -25.0 && x >= -25.0 && y <= 365.0 && x <= 365.0 {
         let rank = if x <= 25.0 {
-            Rank::A
+            File::A
         } else if x <= 75.0 {
-            Rank::B
+            File::B
         } else if x <= 125.0 {
-            Rank::C
+            File::C
         } else if x <= 175.0 {
-            Rank::D
+            File::D
         } else if x <= 225.0 {
-            Rank::E
+            File::E
         } else if x <= 275.0 {
-            Rank::F
+            File::F
         } else if x <= 325.0 {
-            Rank::G
+            File::G
         } else {
-            Rank::H
+            File::H
         };
 
         let file = if y <= 25.0 {
-            File::One
+            Rank::One
         } else if y <= 75.0 {
-            File::Two
+            Rank::Two
         } else if y <= 125.0 {
-            File::Three
+            Rank::Three
         } else if y <= 175.0 {
-            File::Four
+            Rank::Four
         } else if y <= 225.0 {
-            File::Five
+            Rank::Five
         } else if y <= 275.0 {
-            File::Six
+            Rank::Six
         } else if y <= 325.0 {
-            File::Seven
+            Rank::Seven
         } else {
-            File::Eight
+            Rank::Eight
         };
         Some(Square::new(rank, file))
     } else {
