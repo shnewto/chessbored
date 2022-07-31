@@ -392,13 +392,19 @@ pub fn clear_board(
     keys: Res<Input<KeyCode>>,
 ) {
     for (entity, piece, _, _) in active_query.iter_mut() {
-        if keys.pressed(KeyCode::C) || piece.stale {
+        if (keys.pressed(KeyCode::C)
+            && (keys.pressed(KeyCode::LShift) || keys.pressed(KeyCode::RShift)))
+            || piece.stale
+        {
             commands.entity(entity).despawn_recursive();
         }
     }
 
     for (entity, piece, _, _) in selected_query.iter_mut() {
-        if keys.pressed(KeyCode::C) || piece.stale {
+        if (keys.pressed(KeyCode::C)
+            && (keys.pressed(KeyCode::LShift) || keys.pressed(KeyCode::RShift)))
+            || piece.stale
+        {
             commands.entity(entity).despawn_recursive();
         }
     }

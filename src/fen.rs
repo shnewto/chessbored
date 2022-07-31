@@ -2,11 +2,11 @@ use crate::{
     assets::TextAssets,
     board::{get_square, File, Rank, Square},
     pieces::{place_piece, ActivePiece, Kind, Piece, PieceMaterialHandles, Side},
-    tips::TipsText,
-    types::{Board, ButtonInteraction, WithActivePiece},
+    types::{Board, WithActivePiece, WithFenText},
 };
 use bevy::prelude::*;
 use bevy_mod_picking::PickableMesh;
+use indoc::indoc;
 use std::fmt::Write as _;
 
 #[derive(Component)]
@@ -46,98 +46,59 @@ pub fn toggle_save_position(
 ) {
     let clear_color_hex_string = "69696b";
     let text_color_hex_string = "a1a1a1";
-    if keys.just_pressed(KeyCode::S) {
+
+    if (keys.pressed(KeyCode::RShift) || keys.pressed(KeyCode::LShift)) && keys.pressed(KeyCode::S)
+    {
+        // clear saved
         if let Some(entity) = saved_fen.text_entity {
-            // clear saved
             commands.entity(entity).despawn_recursive();
             saved_fen.text_entity = None;
             saved_fen.saved = "".into();
-        } else {
-            // save
-            let display_text = format!("saved position\n{}", saved_fen.curr.clone());
-            let entity: Entity = commands
-                .spawn_bundle(ButtonBundle {
-                    style: Style {
-                        size: Size::new(Val::Px(400.0), Val::Px(20.0)),
-                        position_type: PositionType::Absolute,
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        position: Rect {
-                            left: Val::Px(150.0),
-                            bottom: Val::Px(80.0),
-                            ..default()
-                        },
-                        ..default()
-                    },
-                    color: Color::hex(clear_color_hex_string)
-                        .unwrap_or_else(|_| {
-                            panic!("couldn't make hex color from {}", clear_color_hex_string)
-                        })
-                        .into(),
-                    ..Default::default()
-                })
-                .insert(FenElement)
-                .with_children(|parent| {
-                    parent.spawn_bundle(TextBundle {
-                        text: Text {
-                            sections: vec![TextSection {
-                                value: display_text.clone(),
-                                style: TextStyle {
-                                    font: fen_assets.italic_font_handle.clone(),
-                                    font_size: 12.0,
-                                    color: Color::hex(text_color_hex_string).unwrap_or_else(|_| {
-                                        panic!(
-                                            "couldn't make hex color from {}",
-                                            text_color_hex_string
-                                        )
-                                    }),
-                                },
-                            }],
-                            alignment: TextAlignment {
-                                vertical: VerticalAlign::Center,
-                                horizontal: HorizontalAlign::Center,
-                            },
-                        },
-                        ..Default::default()
-                    });
-                })
-                .id();
-            saved_fen.text_entity = Some(entity);
-            saved_fen.saved = saved_fen.curr.clone();
         }
     }
-}
 
-pub fn spawn(mut commands: Commands, fen_assets: Res<TextAssets>) {
-    let txt_val = "FEN NOTATION";
-    commands
-        .spawn_bundle(ButtonBundle {
-            style: Style {
-                size: Size::new(Val::Px(400.0), Val::Px(20.0)),
-                position_type: PositionType::Absolute,
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                position: Rect {
-                    left: Val::Px(150.0),
-                    bottom: Val::Px(120.0),
+    if keys.just_pressed(KeyCode::S) {
+        // save / overwite saved
+        if let Some(entity) = saved_fen.text_entity {
+            commands.entity(entity).despawn_recursive();
+            saved_fen.text_entity = None;
+            saved_fen.saved = "".into();
+        }
+
+        let display_text = format!("saved: {}", saved_fen.curr.clone());
+        let entity: Entity = commands
+            .spawn_bundle(ButtonBundle {
+                style: Style {
+                    size: Size::new(Val::Px(400.0), Val::Px(40.0)),
+                    position_type: PositionType::Absolute,
+                    justify_content: JustifyContent::FlexStart,
+                    align_items: AlignItems::FlexStart,
+                    position: Rect {
+                        left: Val::Px(30.0),
+                        bottom: Val::Px(65.0),
+                        ..default()
+                    },
                     ..default()
                 },
-                ..default()
-            },
-            color: Color::rgb(0.15, 0.15, 0.15).into(),
-            ..Default::default()
-        })
-        .insert(FenElement)
-        .with_children(|parent| {
-            parent
-                .spawn_bundle(TextBundle {
+                color: Color::hex(clear_color_hex_string)
+                    .unwrap_or_else(|_| {
+                        panic!("couldn't make hex color from {}", clear_color_hex_string)
+                    })
+                    .into(),
+                ..Default::default()
+            })
+            .insert(FenElement)
+            .with_children(|parent| {
+                parent.spawn_bundle(TextBundle {
                     text: Text {
                         sections: vec![TextSection {
-                            value: txt_val.to_string(),
+                            value: display_text.clone(),
                             style: TextStyle {
                                 font: fen_assets.regular_font_handle.clone(),
-                                font_size: 12.0,
-                                color: Color::rgb(0.9, 0.9, 0.9),
+                                font_size: 11.0,
+                                color: Color::hex(text_color_hex_string).unwrap_or_else(|_| {
+                                    panic!("couldn't make hex color from {}", text_color_hex_string)
+                                }),
                             },
                         }],
                         alignment: TextAlignment {
@@ -146,21 +107,32 @@ pub fn spawn(mut commands: Commands, fen_assets: Res<TextAssets>) {
                         },
                     },
                     ..Default::default()
-                })
-                .insert(FenText);
-        });
+                });
+            })
+            .id();
+        saved_fen.text_entity = Some(entity);
+        saved_fen.saved = saved_fen.curr.clone();
+    }
+}
 
+pub fn spawn(mut commands: Commands, fen_assets: Res<TextAssets>) {
     let clear_color_hex_string = "69696b";
+    let txt_val = "FEN NOTATION";
+    let positions_text = indoc! {"
+        position
+        --------------------
+        current: "};
+
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
-                size: Size::new(Val::Px(400.0), Val::Px(10.0)),
+                size: Size::new(Val::Px(400.0), Val::Px(40.0)),
                 position_type: PositionType::Absolute,
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
+                justify_content: JustifyContent::FlexStart,
+                align_items: AlignItems::FlexStart,
                 position: Rect {
-                    left: Val::Px(150.0),
-                    bottom: Val::Px(110.0),
+                    left: Val::Px(30.0),
+                    bottom: Val::Px(80.0),
                     ..default()
                 },
                 ..default()
@@ -172,66 +144,55 @@ pub fn spawn(mut commands: Commands, fen_assets: Res<TextAssets>) {
                 .into(),
             ..Default::default()
         })
-        .insert(CopyElement)
+        .insert(FenElement)
         .with_children(|parent| {
             parent
                 .spawn_bundle(TextBundle {
                     text: Text {
-                        sections: vec![TextSection {
-                            value: "(click FEN to copy)".into(),
-                            style: TextStyle {
-                                font: fen_assets.italic_font_handle.clone(),
-                                font_size: 10.0,
-                                color: Color::rgb(0.15, 0.15, 0.15),
+                        sections: vec![
+                            TextSection {
+                                value: positions_text.to_string(),
+                                style: TextStyle {
+                                    font: fen_assets.regular_font_handle.clone(),
+                                    font_size: 11.0,
+                                    color: Color::rgb(0.15, 0.15, 0.15),
+                                },
                             },
-                        }],
+                            TextSection {
+                                value: txt_val.to_string(),
+                                style: TextStyle {
+                                    font: fen_assets.regular_font_handle.clone(),
+                                    font_size: 11.0,
+                                    color: Color::rgb(0.15, 0.15, 0.15),
+                                },
+                            },
+                        ],
                         alignment: TextAlignment {
                             vertical: VerticalAlign::Center,
-                            horizontal: HorizontalAlign::Center,
+                            horizontal: HorizontalAlign::Left,
                         },
                     },
-                    ..Default::default()
+                    ..default()
                 })
-                .insert(CopyText);
+                .insert(FenText);
         });
 }
 
-type WithFenText = (With<FenText>, Without<TipsText>, Without<CopyText>);
-type WithCopyText = (With<CopyText>, Without<TipsText>, Without<FenText>);
-
 pub fn copy_to_clipboard(
     mut clipboard: ResMut<bevy_egui::EguiClipboard>,
-    interaction_query: Query<ButtonInteraction, (Changed<Interaction>, With<FenElement>)>,
+    keys: Res<Input<KeyCode>>,
     mut fen_text_query: Query<&mut Text, WithFenText>,
-    mut copy_text_query: Query<&mut Text, WithCopyText>,
 ) {
     let clicked_color_hex_string = "a1a1a1";
-    let copied_color_hex_string = "f3f0f5";
-    for (interaction, children) in interaction_query.iter() {
-        if let (Ok(mut fen_text), Ok(mut copy_text)) = (
-            fen_text_query.get_mut(children[0]),
-            copy_text_query.get_single_mut(),
-        ) {
-            match *interaction {
-                Interaction::Clicked => {
-                    clipboard.set_contents(&fen_text.sections[0].value);
-                    fen_text.sections[0].style.color = Color::hex(clicked_color_hex_string)
-                        .unwrap_or_else(|_| {
-                            panic!("couldn't make hex color from {}", clicked_color_hex_string)
-                        });
-                    copy_text.sections[0].value = "copied!".into();
-                    copy_text.sections[0].style.color = Color::hex(copied_color_hex_string)
-                        .unwrap_or_else(|_| {
-                            panic!("couldn't make hex color from {}", copied_color_hex_string)
-                        });
-                }
-
-                Interaction::None | Interaction::Hovered => {
-                    fen_text.sections[0].style.color = Color::rgb(0.9, 0.9, 0.9);
-                    copy_text.sections[0].value = "(click FEN to copy)".into();
-                    copy_text.sections[0].style.color = Color::rgb(0.15, 0.15, 0.15);
-                }
-            }
+    if let Ok(mut fen_text) = fen_text_query.get_single_mut() {
+        if keys.pressed(KeyCode::LWin) && keys.pressed(KeyCode::C) {
+            clipboard.set_contents(&fen_text.sections[1].value);
+            fen_text.sections[1].style.color =
+                Color::hex(clicked_color_hex_string).unwrap_or_else(|_| {
+                    panic!("couldn't make hex color from {}", clicked_color_hex_string)
+                });
+        } else {
+            fen_text.sections[1].style.color = Color::rgb(0.15, 0.15, 0.15);
         }
     }
 }
@@ -358,7 +319,7 @@ pub fn generate_fen(
     saved_fen_state.curr = fen.clone();
 
     if let Ok(mut text) = text_query.get_single_mut() {
-        text.sections[0].value = fen.into();
+        text.sections[1].value = fen.into();
     }
 }
 

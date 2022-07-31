@@ -23,7 +23,7 @@ pub fn main() {
         .insert_resource(SavedFenState::default())
         .insert_resource(PieceMaterialHandles::default())
         .insert_resource(WindowDescriptor {
-            width: 700.,
+            width: 680.,
             height: 700.,
             title: "chessbored".to_string(),
             present_mode: PresentMode::Fifo,

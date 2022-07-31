@@ -15,10 +15,13 @@ pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
         --------------------
         left mouse click: pickup / place a piece
         x: remove a selected piece
-        c: clear the board
         i: all pieces in 'initial' / starting positions
-        s: save position / clear saved position
-        r: restore saved position
+        s: save position (overwrites)
+        r: restore saved position on the board
+        r: restore saved position on the board
+        shift + s: clear saved position
+        shift + c: clear the board
+        cmd + c to copy current FEN to clipboard
     "};
     commands
         .spawn_bundle(NodeBundle {
@@ -29,7 +32,7 @@ pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
                 align_items: AlignItems::FlexStart,
                 position: Rect {
                     left: Val::Px(30.0),
-                    bottom: Val::Px(570.0),
+                    bottom: Val::Px(565.0),
                     ..default()
                 },
                 ..default()
@@ -49,8 +52,8 @@ pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
                         sections: vec![TextSection {
                             value: tips_text.to_string(),
                             style: TextStyle {
-                                font: text_assets.italic_font_handle.clone(),
-                                font_size: 14.0,
+                                font: text_assets.regular_font_handle.clone(),
+                                font_size: 11.0,
                                 color: Color::rgb(0.15, 0.15, 0.15),
                             },
                         }],
