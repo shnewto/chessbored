@@ -1,6 +1,5 @@
 use bevy::{prelude::*, window::PresentMode};
 use bevy_egui::EguiPlugin;
-// use bevy_egui::EguiPlugin;
 use bevy_mod_picking::*;
 use fen::SavedFenState;
 use pieces::PieceMaterialHandles;
@@ -8,10 +7,10 @@ use pieces::PieceMaterialHandles;
 mod assets;
 mod board;
 mod camera;
+mod control_ux;
 mod fen;
 mod pieces;
 mod state;
-mod tips;
 mod types;
 
 pub fn main() {
@@ -42,58 +41,101 @@ pub fn main() {
         // .add_plugin(DebugEventsPickingPlugin)
         .add_system_set(SystemSet::on_update(state::ChessState::Setup).with_system(setup))
         .add_system_set(
-            SystemSet::on_enter(state::ChessState::Loading).with_system(assets::load_assets),
+            SystemSet::on_update(state::ChessState::Loading).with_system(assets::load_assets),
         )
         .add_system_set(
-            SystemSet::on_exit(state::ChessState::Loading)
+            SystemSet::on_update(state::ChessState::Loaded)
                 .with_system(board::setup_board)
                 .label("setup_board"),
         )
         .add_system_set(
-            SystemSet::on_exit(state::ChessState::Loading)
+            SystemSet::on_update(state::ChessState::Loaded)
                 .with_system(pieces::set_sprite_handles)
                 .label("piece_sprite_handles")
                 .after("setup_board"),
         )
         .add_system_set(
-            SystemSet::on_exit(state::ChessState::Loading)
+            SystemSet::on_update(state::ChessState::Loaded)
                 .with_system(pieces::setup_piece_selection)
                 .after("piece_sprite_handles")
                 .label("piece_selection"),
         )
         .add_system_set(
-            SystemSet::on_exit(state::ChessState::Loading)
-                .with_system(camera::spawn_ui_camera)
-                .label("spawn_ui_camera")
+            SystemSet::on_update(state::ChessState::Loaded)
+                .with_system(fen::spawn)
+                .label("fen")
                 .after("piece_selection"),
         )
         .add_system_set(
-            SystemSet::on_exit(state::ChessState::Loading)
-                .with_system(fen::spawn)
-                .label("fen")
-                .after("spawn_ui_camera"),
-        )
-        .add_system_set(
-            SystemSet::on_exit(state::ChessState::Loading)
-                .with_system(tips::spawn)
-                .label("tips")
+            SystemSet::on_update(state::ChessState::Loaded)
+                .with_system(control_ux::spawn)
+                .label("control_ux")
                 .after("fen"),
         )
         .add_system_set(
-            SystemSet::on_exit(state::ChessState::Loading)
+            SystemSet::on_update(state::ChessState::Loaded)
                 .with_system(camera::setup)
-                .after("tips"),
+                .after("control_ux"),
         )
-        .add_system_to_stage(CoreStage::Update, pieces::cancel_piece_movement)
-        .add_system_to_stage(CoreStage::Update, pieces::starting_positions)
-        .add_system_to_stage(CoreStage::Update, pieces::selection)
-        .add_system_to_stage(CoreStage::Update, pieces::side_piece_selection)
-        .add_system_to_stage(CoreStage::Update, fen::generate_fen)
-        .add_system_to_stage(CoreStage::Update, fen::toggle_save_position)
-        .add_system_to_stage(CoreStage::Update, fen::populate_board_from_fen)
-        .add_system_to_stage(CoreStage::Update, fen::copy_to_clipboard)
-        .add_system_to_stage(CoreStage::PostUpdate, pieces::clear_board)
-        .add_system_to_stage(CoreStage::Last, pieces::piece_movement)
+        .add_system_set(
+            SystemSet::on_update(state::ChessState::Running)
+                .with_system(pieces::cancel_piece_movement)
+                .label("cancel_piece_movement"),
+        )
+        .add_system_set(
+            SystemSet::on_update(state::ChessState::Running)
+                .with_system(pieces::starting_positions)
+                .label("starting_positions")
+                .after("cancel_piece_movement"),
+        )
+        .add_system_set(
+            SystemSet::on_update(state::ChessState::Running)
+                .with_system(pieces::selection)
+                .label("selection")
+                .after("starting_positions"),
+        )
+        .add_system_set(
+            SystemSet::on_update(state::ChessState::Running)
+                .with_system(pieces::side_piece_selection)
+                .label("side_piece_selection")
+                .after("selection"),
+        )
+        .add_system_set(
+            SystemSet::on_update(state::ChessState::Running)
+                .with_system(fen::generate_fen)
+                .label("generate_fen")
+                .after("side_piece_selection"),
+        )
+        .add_system_set(
+            SystemSet::on_update(state::ChessState::Running)
+                .with_system(fen::toggle_save_position)
+                .label("toggle_save_position")
+                .after("generate_fen"),
+        )
+        .add_system_set(
+            SystemSet::on_update(state::ChessState::Running)
+                .with_system(fen::populate_board_from_fen)
+                .label("populate_board_from_fen")
+                .after("toggle_save_position"),
+        )
+        .add_system_set(
+            SystemSet::on_update(state::ChessState::Running)
+                .with_system(fen::copy_to_clipboard)
+                .label("copy_to_clipboard")
+                .after("populate_board_from_fen"),
+        )
+        .add_system_set(
+            SystemSet::on_update(state::ChessState::Running)
+                .with_system(pieces::clear_board)
+                .label("clear_board")
+                .after("copy_to_clipboard"),
+        )
+        .add_system_set(
+            SystemSet::on_update(state::ChessState::Running)
+                .with_system(pieces::piece_movement)
+                .label("piece_movement")
+                .after("clear_board"),
+        )
         .run();
 }
 

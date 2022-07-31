@@ -101,9 +101,6 @@ pub fn load_assets(
     board_assets.wb = textures.add(wb);
     board_assets.wp = textures.add(wp);
 
-    // let regular_font_bytes = include_bytes!("../assets/font/RobotMono/RobotoMono-Bold.ttf");
-    // let italic_font_bytes = include_bytes!("../assets/font/RobotMono/RobotoMono-Italic.ttf");
-
     let regular_font_bytes = include_bytes!("../assets/font/NotoSansMono/NotoSansMono-Regular.ttf");
     let bold_font_bytes = include_bytes!("../assets/font/NotoSansMono/NotoSansMono-Bold.ttf");
     let emoji_font_bytes = include_bytes!("../assets/font/NotoEmoji/NotoEmoji-Bold.ttf");

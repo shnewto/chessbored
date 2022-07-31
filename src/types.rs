@@ -6,9 +6,9 @@ use bevy::{
 };
 
 use crate::{
+    control_ux::ControlsText,
     fen::FenText,
     pieces::{ActivePiece, SelectedPiece, SourcePiece},
-    tips::TipsText,
 };
 
 pub type Board = HashMap<&'static str, Vec2>;
@@ -19,7 +19,7 @@ pub type WithSelectedPiece = (
     Without<ActivePiece>,
 );
 
-pub type WithFenText = (With<FenText>, Without<TipsText>);
+pub type WithFenText = (With<FenText>, Without<ControlsText>);
 
 pub type WithActivePiece = (
     With<ActivePiece>,

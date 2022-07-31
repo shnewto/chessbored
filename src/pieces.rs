@@ -333,7 +333,7 @@ pub fn piece_movement(
 
             let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
             let ndc_to_world =
-                camera_transform.compute_matrix() * camera.projection_matrix.inverse();
+                camera_transform.compute_matrix() * camera.projection_matrix().inverse();
 
             let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
 
@@ -379,7 +379,9 @@ pub fn cancel_piece_movement(
             } else {
                 commands.entity(entity).despawn_recursive();
             }
-        } else if keys.pressed(KeyCode::X) {
+        } else if keys.pressed(KeyCode::X)
+            && !(keys.pressed(KeyCode::LShift) || keys.pressed(KeyCode::RShift))
+        {
             commands.entity(entity).despawn_recursive();
         }
     }
@@ -392,7 +394,7 @@ pub fn clear_board(
     keys: Res<Input<KeyCode>>,
 ) {
     for (entity, piece, _, _) in active_query.iter_mut() {
-        if (keys.pressed(KeyCode::C)
+        if (keys.pressed(KeyCode::X)
             && (keys.pressed(KeyCode::LShift) || keys.pressed(KeyCode::RShift)))
             || piece.stale
         {
@@ -401,10 +403,7 @@ pub fn clear_board(
     }
 
     for (entity, piece, _, _) in selected_query.iter_mut() {
-        if (keys.pressed(KeyCode::C)
-            && (keys.pressed(KeyCode::LShift) || keys.pressed(KeyCode::RShift)))
-            || piece.stale
-        {
+        if piece.stale {
             commands.entity(entity).despawn_recursive();
         }
     }

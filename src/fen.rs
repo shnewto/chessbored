@@ -55,9 +55,7 @@ pub fn toggle_save_position(
             saved_fen.text_entity = None;
             saved_fen.saved = "".into();
         }
-    }
-
-    if keys.just_pressed(KeyCode::S) {
+    } else if keys.pressed(KeyCode::S) {
         // save / overwite saved
         if let Some(entity) = saved_fen.text_entity {
             commands.entity(entity).despawn_recursive();
@@ -73,7 +71,7 @@ pub fn toggle_save_position(
                     position_type: PositionType::Absolute,
                     justify_content: JustifyContent::FlexStart,
                     align_items: AlignItems::FlexStart,
-                    position: Rect {
+                    position: UiRect {
                         left: Val::Px(30.0),
                         bottom: Val::Px(65.0),
                         ..default()
@@ -95,7 +93,7 @@ pub fn toggle_save_position(
                             value: display_text.clone(),
                             style: TextStyle {
                                 font: fen_assets.regular_font_handle.clone(),
-                                font_size: 11.0,
+                                font_size: 14.0,
                                 color: Color::hex(text_color_hex_string).unwrap_or_else(|_| {
                                     panic!("couldn't make hex color from {}", text_color_hex_string)
                                 }),
@@ -130,7 +128,7 @@ pub fn spawn(mut commands: Commands, fen_assets: Res<TextAssets>) {
                 position_type: PositionType::Absolute,
                 justify_content: JustifyContent::FlexStart,
                 align_items: AlignItems::FlexStart,
-                position: Rect {
+                position: UiRect {
                     left: Val::Px(30.0),
                     bottom: Val::Px(80.0),
                     ..default()
@@ -154,7 +152,7 @@ pub fn spawn(mut commands: Commands, fen_assets: Res<TextAssets>) {
                                 value: positions_text.to_string(),
                                 style: TextStyle {
                                     font: fen_assets.regular_font_handle.clone(),
-                                    font_size: 11.0,
+                                    font_size: 14.0,
                                     color: Color::rgb(0.15, 0.15, 0.15),
                                 },
                             },
@@ -162,7 +160,7 @@ pub fn spawn(mut commands: Commands, fen_assets: Res<TextAssets>) {
                                 value: txt_val.to_string(),
                                 style: TextStyle {
                                     font: fen_assets.regular_font_handle.clone(),
-                                    font_size: 11.0,
+                                    font_size: 14.0,
                                     color: Color::rgb(0.15, 0.15, 0.15),
                                 },
                             },
