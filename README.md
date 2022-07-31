@@ -8,10 +8,6 @@ a chess board with movable pieces that behaves like a chessboard on the table. u
 
 ![grey and white chess board, grey and white pieces each in their starting positions and a selection menu of each piece along the right edge of the board. below the board are white letters on a black background describing the positions on the board in FEN notation along with a note that you can click to copy the FEN description.](https://github.com/shnewto/chessbored/blob/main/img/board.png?raw=true)
 
-## try it out
-(note: it's pretty much nonsense on mobile)
-<https://chessbored.shnewto.space>
-
 ## installing / updating install
 
 ```bash
