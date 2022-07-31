@@ -3,4 +3,5 @@ pub enum ChessState {
     Setup,
     Loading,
     Loaded,
+    Running,
 }

@@ -62,13 +62,52 @@ impl Side {
             },
         }
     }
+
+    pub fn material_handle(&self, handles: PieceMaterialHandles) -> Handle<ColorMaterial> {
+        match self {
+            Self::White(p) => match p {
+                Kind::Queen => handles.wq_material_handle,
+                Kind::King => handles.wk_material_handle,
+                Kind::Bishop => handles.wb_material_handle,
+                Kind::Knight => handles.wn_material_handle,
+                Kind::Rook => handles.wr_material_handle,
+                Kind::Pawn => handles.wp_material_handle,
+            },
+            Self::Black(p) => match p {
+                Kind::Queen => handles.bq_material_handle,
+                Kind::King => handles.bk_material_handle,
+                Kind::Bishop => handles.bb_material_handle,
+                Kind::Knight => handles.bn_material_handle,
+                Kind::Rook => handles.br_material_handle,
+                Kind::Pawn => handles.bp_material_handle,
+            },
+        }
+    }
 }
+
 #[derive(Component, Debug, Clone, Default)]
 pub struct Piece {
     pub def: Side,
     pub selected_translation: Option<Vec3>,
     pub sprite_handle: Handle<ColorMaterial>,
     pub stale: bool,
+}
+
+#[derive(Component, Debug, Clone, Default)]
+pub struct PieceMaterialHandles {
+    pub bq_material_handle: Handle<ColorMaterial>,
+    pub bk_material_handle: Handle<ColorMaterial>,
+    pub bb_material_handle: Handle<ColorMaterial>,
+    pub bn_material_handle: Handle<ColorMaterial>,
+    pub br_material_handle: Handle<ColorMaterial>,
+    pub bp_material_handle: Handle<ColorMaterial>,
+
+    pub wq_material_handle: Handle<ColorMaterial>,
+    pub wk_material_handle: Handle<ColorMaterial>,
+    pub wb_material_handle: Handle<ColorMaterial>,
+    pub wn_material_handle: Handle<ColorMaterial>,
+    pub wr_material_handle: Handle<ColorMaterial>,
+    pub wp_material_handle: Handle<ColorMaterial>,
 }
 
 #[derive(Component, Debug, Default)]
@@ -294,7 +333,7 @@ pub fn piece_movement(
 
             let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
             let ndc_to_world =
-                camera_transform.compute_matrix() * camera.projection_matrix.inverse();
+                camera_transform.compute_matrix() * camera.projection_matrix().inverse();
 
             let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
 
@@ -340,7 +379,9 @@ pub fn cancel_piece_movement(
             } else {
                 commands.entity(entity).despawn_recursive();
             }
-        } else if keys.pressed(KeyCode::X) {
+        } else if keys.pressed(KeyCode::X)
+            && !(keys.pressed(KeyCode::LShift) || keys.pressed(KeyCode::RShift))
+        {
             commands.entity(entity).despawn_recursive();
         }
     }
@@ -353,436 +394,213 @@ pub fn clear_board(
     keys: Res<Input<KeyCode>>,
 ) {
     for (entity, piece, _, _) in active_query.iter_mut() {
-        if keys.pressed(KeyCode::C) || piece.stale {
+        if (keys.pressed(KeyCode::X)
+            && (keys.pressed(KeyCode::LShift) || keys.pressed(KeyCode::RShift)))
+            || piece.stale
+        {
             commands.entity(entity).despawn_recursive();
         }
     }
 
     for (entity, piece, _, _) in selected_query.iter_mut() {
-        if keys.pressed(KeyCode::C) || piece.stale {
+        if piece.stale {
             commands.entity(entity).despawn_recursive();
         }
     }
 }
 
-pub fn setup_piece_selection(
-    mut commands: Commands,
+pub fn set_sprite_handles(
     assets: ResMut<BoardAssets>,
-    board: Res<Board>,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut piece_material_handles: ResMut<PieceMaterialHandles>,
+) {
+    // sprites
+    piece_material_handles.bq_material_handle = materials.add(assets.bq.clone().into());
+    piece_material_handles.bk_material_handle = materials.add(assets.bk.clone().into());
+    piece_material_handles.bb_material_handle = materials.add(assets.bb.clone().into());
+    piece_material_handles.bn_material_handle = materials.add(assets.bn.clone().into());
+    piece_material_handles.br_material_handle = materials.add(assets.br.clone().into());
+    piece_material_handles.bp_material_handle = materials.add(assets.bp.clone().into());
+
+    piece_material_handles.wq_material_handle = materials.add(assets.wq.clone().into());
+    piece_material_handles.wk_material_handle = materials.add(assets.wk.clone().into());
+    piece_material_handles.wb_material_handle = materials.add(assets.wb.clone().into());
+    piece_material_handles.wn_material_handle = materials.add(assets.wn.clone().into());
+    piece_material_handles.wr_material_handle = materials.add(assets.wr.clone().into());
+    piece_material_handles.wp_material_handle = materials.add(assets.wp.clone().into());
+}
+
+pub fn place_piece<C: Component>(
+    pos: &str,
+    side: Side,
+    piece_kind: C,
+    material_handle: &Handle<ColorMaterial>,
+    board: &Res<Board>,
+    commands: &mut Commands,
+    meshes: &mut ResMut<Assets<Mesh>>,
 ) {
     let pz = 0.0;
+    commands
+        .spawn_bundle(MaterialMesh2dBundle {
+            mesh: meshes
+                .add(Mesh::from(shape::Quad {
+                    size: Vec2::new(50.0, 50.0),
+                    ..default()
+                }))
+                .into(),
+            transform: Transform::from_xyz(
+                board.get(pos).unwrap().x,
+                board.get(pos).unwrap().y,
+                pz,
+            ),
+            material: material_handle.clone(),
+            ..default()
+        })
+        .insert_bundle(PickableBundle {
+            focus_policy: FocusPolicy::Pass,
+            ..default()
+        })
+        .insert(Piece {
+            def: side,
+            sprite_handle: material_handle.clone(),
+            selected_translation: Some(Vec3::new(
+                board.get(pos).unwrap().x,
+                board.get(pos).unwrap().y,
+                pz,
+            )),
+            ..default()
+        })
+        .insert(piece_kind);
+}
 
-    // sprites
-    let bq_material_handle = materials.add(assets.bq.clone().into());
-    let bk_material_handle = materials.add(assets.bk.clone().into());
-    let bb_material_handle = materials.add(assets.bb.clone().into());
-    let bn_material_handle = materials.add(assets.bn.clone().into());
-    let br_material_handle = materials.add(assets.br.clone().into());
-    let bp_material_handle = materials.add(assets.bp.clone().into());
-
-    let wq_material_handle = materials.add(assets.wq.clone().into());
-    let wk_material_handle = materials.add(assets.wk.clone().into());
-    let wb_material_handle = materials.add(assets.wb.clone().into());
-    let wn_material_handle = materials.add(assets.wn.clone().into());
-    let wr_material_handle = materials.add(assets.wr.clone().into());
-    let wp_material_handle = materials.add(assets.wp.clone().into());
-
+pub fn setup_piece_selection(
+    board: Res<Board>,
+    piece_material_handles: Res<PieceMaterialHandles>,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+) {
     // row 1 black
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("bq").unwrap().x,
-                board.get("bq").unwrap().y,
-                pz,
-            ),
-            material: bq_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Queen),
-            sprite_handle: bq_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("bq").unwrap().x,
-                board.get("bq").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(SourcePiece);
-
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("bk").unwrap().x,
-                board.get("bk").unwrap().y,
-                pz,
-            ),
-            material: bk_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::King),
-            sprite_handle: bk_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("bk").unwrap().x,
-                board.get("bk").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(SourcePiece);
+    place_piece(
+        "bq",
+        Side::Black(Kind::Queen),
+        SourcePiece,
+        &piece_material_handles.bq_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "bk",
+        Side::Black(Kind::King),
+        SourcePiece,
+        &piece_material_handles.bk_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
     // row 2 black
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("bp").unwrap().x,
-                board.get("bp").unwrap().y,
-                pz,
-            ),
-            material: bp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Pawn),
-            sprite_handle: bp_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("bp").unwrap().x,
-                board.get("bp").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(SourcePiece);
-
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("bb").unwrap().x,
-                board.get("bb").unwrap().y,
-                pz,
-            ),
-            material: bb_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Bishop),
-            sprite_handle: bb_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("bb").unwrap().x,
-                board.get("bb").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(SourcePiece);
-
-    // row3 black
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("bn").unwrap().x,
-                board.get("bn").unwrap().y,
-                pz,
-            ),
-            material: bn_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Knight),
-            sprite_handle: bn_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("bn").unwrap().x,
-                board.get("bn").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(SourcePiece);
-
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("br").unwrap().x,
-                board.get("br").unwrap().y,
-                pz,
-            ),
-            material: br_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Rook),
-            sprite_handle: br_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("br").unwrap().x,
-                board.get("br").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(SourcePiece);
+    place_piece(
+        "bp",
+        Side::Black(Kind::Pawn),
+        SourcePiece,
+        &piece_material_handles.bp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "bb",
+        Side::Black(Kind::Bishop),
+        SourcePiece,
+        &piece_material_handles.bb_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    // row 3 black
+    place_piece(
+        "bn",
+        Side::Black(Kind::Knight),
+        SourcePiece,
+        &piece_material_handles.bn_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "br",
+        Side::Black(Kind::Rook),
+        SourcePiece,
+        &piece_material_handles.br_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
 
     // row 1 white
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("wq").unwrap().x,
-                board.get("wq").unwrap().y,
-                pz,
-            ),
-            material: wq_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Queen),
-            sprite_handle: wq_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("wq").unwrap().x,
-                board.get("wq").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(SourcePiece);
-
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("wk").unwrap().x,
-                board.get("wk").unwrap().y,
-                pz,
-            ),
-            material: wk_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::King),
-            sprite_handle: wk_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("wk").unwrap().x,
-                board.get("wk").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(SourcePiece);
-
+    place_piece(
+        "wq",
+        Side::White(Kind::Queen),
+        SourcePiece,
+        &piece_material_handles.wq_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "wk",
+        Side::White(Kind::King),
+        SourcePiece,
+        &piece_material_handles.wk_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
     // row 2 white
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("wp").unwrap().x,
-                board.get("wp").unwrap().y,
-                pz,
-            ),
-            material: wp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Pawn),
-            sprite_handle: wp_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("wp").unwrap().x,
-                board.get("wp").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(SourcePiece);
-
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("wb").unwrap().x,
-                board.get("wb").unwrap().y,
-                pz,
-            ),
-            material: wb_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Bishop),
-            sprite_handle: wb_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("wb").unwrap().x,
-                board.get("wb").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(SourcePiece);
+    place_piece(
+        "wp",
+        Side::White(Kind::Pawn),
+        SourcePiece,
+        &piece_material_handles.wp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "wb",
+        Side::White(Kind::Bishop),
+        SourcePiece,
+        &piece_material_handles.wb_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
     // row 3 white
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("wn").unwrap().x,
-                board.get("wn").unwrap().y,
-                pz,
-            ),
-            material: wn_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Knight),
-            sprite_handle: wn_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("wn").unwrap().x,
-                board.get("wn").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(SourcePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("wr").unwrap().x,
-                board.get("wr").unwrap().y,
-                pz,
-            ),
-            material: wr_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Rook),
-            sprite_handle: wr_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("wr").unwrap().x,
-                board.get("wr").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(SourcePiece);
+    place_piece(
+        "wn",
+        Side::White(Kind::Knight),
+        SourcePiece,
+        &piece_material_handles.wn_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "wr",
+        Side::White(Kind::Rook),
+        SourcePiece,
+        &piece_material_handles.wr_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
 }
 
 pub fn starting_positions(
-    mut commands: Commands,
-    assets: ResMut<BoardAssets>,
     board: Res<Board>,
+    mut commands: Commands,
+    piece_material_handles: Res<PieceMaterialHandles>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     query: Query<(Entity, &Piece, With<PickableMesh>, WithActivePiece)>,
     keys: Res<Input<KeyCode>>,
 ) {
@@ -794,1017 +612,309 @@ pub fn starting_positions(
         commands.entity(entity).despawn_recursive();
     }
 
-    let pz = 0.0;
-
-    // sprites
-    let bq_material_handle = materials.add(assets.bq.clone().into());
-    let bk_material_handle = materials.add(assets.bk.clone().into());
-    let bb_material_handle = materials.add(assets.bb.clone().into());
-    let bn_material_handle = materials.add(assets.bn.clone().into());
-    let br_material_handle = materials.add(assets.br.clone().into());
-    let bp_material_handle = materials.add(assets.bp.clone().into());
-
-    let wq_material_handle = materials.add(assets.wq.clone().into());
-    let wk_material_handle = materials.add(assets.wk.clone().into());
-    let wb_material_handle = materials.add(assets.wb.clone().into());
-    let wn_material_handle = materials.add(assets.wn.clone().into());
-    let wr_material_handle = materials.add(assets.wr.clone().into());
-    let wp_material_handle = materials.add(assets.wp.clone().into());
-
     // black pawns
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("a7").unwrap().x,
-                board.get("a7").unwrap().y,
-                pz,
-            ),
-            material: bp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Pawn),
-            sprite_handle: bp_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("a7").unwrap().x,
-                board.get("a7").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("b7").unwrap().x,
-                board.get("b7").unwrap().y,
-                pz,
-            ),
-            material: bp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Pawn),
-            sprite_handle: bp_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("b7").unwrap().x,
-                board.get("b7").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("c7").unwrap().x,
-                board.get("c7").unwrap().y,
-                pz,
-            ),
-            material: bp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Pawn),
-            sprite_handle: bp_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("c7").unwrap().x,
-                board.get("c7").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("d7").unwrap().x,
-                board.get("d7").unwrap().y,
-                pz,
-            ),
-            material: bp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Pawn),
-            sprite_handle: bp_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("d7").unwrap().x,
-                board.get("d7").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("e7").unwrap().x,
-                board.get("e7").unwrap().y,
-                pz,
-            ),
-            material: bp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Pawn),
-            sprite_handle: bp_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("e7").unwrap().x,
-                board.get("e7").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("f7").unwrap().x,
-                board.get("f7").unwrap().y,
-                pz,
-            ),
-            material: bp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Pawn),
-            sprite_handle: bp_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("f7").unwrap().x,
-                board.get("f7").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("g7").unwrap().x,
-                board.get("g7").unwrap().y,
-                pz,
-            ),
-            material: bp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Pawn),
-            sprite_handle: bp_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("g7").unwrap().x,
-                board.get("g7").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("h7").unwrap().x,
-                board.get("h7").unwrap().y,
-                pz,
-            ),
-            material: bp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Pawn),
-            sprite_handle: bp_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("h7").unwrap().x,
-                board.get("h7").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
+    place_piece(
+        "a7",
+        Side::Black(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.bp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "b7",
+        Side::Black(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.bp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "c7",
+        Side::Black(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.bp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "d7",
+        Side::Black(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.bp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "e7",
+        Side::Black(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.bp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "f7",
+        Side::Black(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.bp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "g7",
+        Side::Black(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.bp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "h7",
+        Side::Black(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.bp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+
     // black major/minor
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("a8").unwrap().x,
-                board.get("a8").unwrap().y,
-                pz,
-            ),
-            material: br_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Rook),
-            sprite_handle: br_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("a8").unwrap().x,
-                board.get("a8").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("b8").unwrap().x,
-                board.get("b8").unwrap().y,
-                pz,
-            ),
-            material: bn_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Knight),
-            sprite_handle: bn_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("b8").unwrap().x,
-                board.get("b8").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("c8").unwrap().x,
-                board.get("c8").unwrap().y,
-                pz,
-            ),
-            material: bb_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Bishop),
-            sprite_handle: bb_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("c8").unwrap().x,
-                board.get("c8").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("d8").unwrap().x,
-                board.get("d8").unwrap().y,
-                pz,
-            ),
-            material: bq_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Queen),
-            sprite_handle: bq_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("d8").unwrap().x,
-                board.get("d8").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("e8").unwrap().x,
-                board.get("e8").unwrap().y,
-                pz,
-            ),
-            material: bk_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::King),
-            sprite_handle: bk_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("e8").unwrap().x,
-                board.get("e8").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("f8").unwrap().x,
-                board.get("f8").unwrap().y,
-                pz,
-            ),
-            material: bb_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Bishop),
-            sprite_handle: bb_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("f8").unwrap().x,
-                board.get("f8").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("g8").unwrap().x,
-                board.get("g8").unwrap().y,
-                pz,
-            ),
-            material: bn_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Knight),
-            sprite_handle: bn_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("g8").unwrap().x,
-                board.get("g8").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("h8").unwrap().x,
-                board.get("h8").unwrap().y,
-                pz,
-            ),
-            material: br_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::Black(Kind::Rook),
-            sprite_handle: br_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("h8").unwrap().x,
-                board.get("h8").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
+    place_piece(
+        "a8",
+        Side::Black(Kind::Rook),
+        ActivePiece,
+        &piece_material_handles.br_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "b8",
+        Side::Black(Kind::Knight),
+        ActivePiece,
+        &piece_material_handles.bn_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "c8",
+        Side::Black(Kind::Bishop),
+        ActivePiece,
+        &piece_material_handles.bb_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+
+    place_piece(
+        "d8",
+        Side::Black(Kind::Queen),
+        ActivePiece,
+        &piece_material_handles.bq_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+
+    place_piece(
+        "e8",
+        Side::Black(Kind::King),
+        ActivePiece,
+        &piece_material_handles.bk_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+
+    place_piece(
+        "f8",
+        Side::Black(Kind::Bishop),
+        ActivePiece,
+        &piece_material_handles.bb_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+
+    place_piece(
+        "g8",
+        Side::Black(Kind::Knight),
+        ActivePiece,
+        &piece_material_handles.bn_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+
+    place_piece(
+        "h8",
+        Side::Black(Kind::Rook),
+        ActivePiece,
+        &piece_material_handles.br_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+
     // white pawns
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("a2").unwrap().x,
-                board.get("a2").unwrap().y,
-                pz,
-            ),
-            material: wp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Pawn),
-            sprite_handle: wp_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("a2").unwrap().x,
-                board.get("a2").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("b2").unwrap().x,
-                board.get("b2").unwrap().y,
-                pz,
-            ),
-            material: wp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Pawn),
-            sprite_handle: wp_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("b2").unwrap().x,
-                board.get("b2").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("c2").unwrap().x,
-                board.get("c2").unwrap().y,
-                pz,
-            ),
-            material: wp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Pawn),
-            sprite_handle: wp_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("c2").unwrap().x,
-                board.get("c2").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("d2").unwrap().x,
-                board.get("d2").unwrap().y,
-                pz,
-            ),
-            material: wp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Pawn),
-            sprite_handle: wp_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("d2").unwrap().x,
-                board.get("d2").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("e2").unwrap().x,
-                board.get("e2").unwrap().y,
-                pz,
-            ),
-            material: wp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Pawn),
-            sprite_handle: wp_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("e2").unwrap().x,
-                board.get("e2").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("f2").unwrap().x,
-                board.get("f2").unwrap().y,
-                pz,
-            ),
-            material: wp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Pawn),
-            sprite_handle: wp_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("f2").unwrap().x,
-                board.get("f2").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("g2").unwrap().x,
-                board.get("g2").unwrap().y,
-                pz,
-            ),
-            material: wp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Pawn),
-            sprite_handle: wp_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("g2").unwrap().x,
-                board.get("g2").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("h2").unwrap().x,
-                board.get("h2").unwrap().y,
-                pz,
-            ),
-            material: wp_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Pawn),
-            sprite_handle: wp_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("h2").unwrap().x,
-                board.get("h2").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
+    place_piece(
+        "a2",
+        Side::White(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.wp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "b2",
+        Side::White(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.wp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "c2",
+        Side::White(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.wp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "d2",
+        Side::White(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.wp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "e2",
+        Side::White(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.wp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "f2",
+        Side::White(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.wp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "g2",
+        Side::White(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.wp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "h2",
+        Side::White(Kind::Pawn),
+        ActivePiece,
+        &piece_material_handles.wp_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+
     // white major/minor
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("a1").unwrap().x,
-                board.get("a1").unwrap().y,
-                pz,
-            ),
-            material: wr_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Rook),
-            sprite_handle: wr_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("a1").unwrap().x,
-                board.get("a1").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("b1").unwrap().x,
-                board.get("b1").unwrap().y,
-                pz,
-            ),
-            material: wn_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Knight),
-            sprite_handle: wn_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("b1").unwrap().x,
-                board.get("b1").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("c1").unwrap().x,
-                board.get("c1").unwrap().y,
-                pz,
-            ),
-            material: wb_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Bishop),
-            sprite_handle: wb_material_handle.clone(),
-            selected_translation: Some(Vec3::new(
-                board.get("c1").unwrap().x,
-                board.get("c1").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("d1").unwrap().x,
-                board.get("d1").unwrap().y,
-                pz,
-            ),
-            material: wq_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Queen),
-            sprite_handle: wq_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("d1").unwrap().x,
-                board.get("d1").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("e1").unwrap().x,
-                board.get("e1").unwrap().y,
-                pz,
-            ),
-            material: wk_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::King),
-            sprite_handle: wk_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("e1").unwrap().x,
-                board.get("e1").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("f1").unwrap().x,
-                board.get("f1").unwrap().y,
-                pz,
-            ),
-            material: wb_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Bishop),
-            sprite_handle: wb_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("f1").unwrap().x,
-                board.get("f1").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("g1").unwrap().x,
-                board.get("g1").unwrap().y,
-                pz,
-            ),
-            material: wn_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Knight),
-            sprite_handle: wn_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("g1").unwrap().x,
-                board.get("g1").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
-    commands
-        .spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes
-                .add(Mesh::from(shape::Quad {
-                    size: Vec2::new(50.0, 50.0),
-                    ..default()
-                }))
-                .into(),
-            transform: Transform::from_xyz(
-                board.get("h1").unwrap().x,
-                board.get("h1").unwrap().y,
-                pz,
-            ),
-            material: wr_material_handle.clone(),
-            ..default()
-        })
-        .insert_bundle(PickableBundle {
-            focus_policy: FocusPolicy::Pass,
-            ..default()
-        })
-        .insert(Piece {
-            def: Side::White(Kind::Rook),
-            sprite_handle: wr_material_handle,
-            selected_translation: Some(Vec3::new(
-                board.get("h1").unwrap().x,
-                board.get("h1").unwrap().y,
-                pz,
-            )),
-            ..default()
-        })
-        .insert(ActivePiece);
+    place_piece(
+        "a1",
+        Side::White(Kind::Rook),
+        ActivePiece,
+        &piece_material_handles.wr_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "b1",
+        Side::White(Kind::Knight),
+        ActivePiece,
+        &piece_material_handles.wn_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+    place_piece(
+        "c1",
+        Side::White(Kind::Bishop),
+        ActivePiece,
+        &piece_material_handles.wb_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+
+    place_piece(
+        "d1",
+        Side::White(Kind::Queen),
+        ActivePiece,
+        &piece_material_handles.wq_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+
+    place_piece(
+        "e1",
+        Side::White(Kind::King),
+        ActivePiece,
+        &piece_material_handles.wk_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+
+    place_piece(
+        "f1",
+        Side::White(Kind::Bishop),
+        ActivePiece,
+        &piece_material_handles.wb_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+
+    place_piece(
+        "g1",
+        Side::White(Kind::Knight),
+        ActivePiece,
+        &piece_material_handles.wn_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
+
+    place_piece(
+        "h1",
+        Side::White(Kind::Rook),
+        ActivePiece,
+        &piece_material_handles.wr_material_handle,
+        &board,
+        &mut commands,
+        &mut meshes,
+    );
 }

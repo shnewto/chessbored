@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use indoc::indoc;
 
 #[derive(Component)]
-pub struct TipsText;
+pub struct ControlsText;
 
 #[derive(Component)]
 pub struct TipsElement;
@@ -14,8 +14,10 @@ pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
         controls
         --------------------
         left mouse click: pickup / place a piece
-        x: remove a selected piece
-        c: clear the board
+        x: remove a selected piece | shift + x: clear the board
+        s: save position (overwrites) | shift + s: clear saved position
+        r: restore saved position on the board
+        cmd + c: copy current FEN to clipboard
         i: all pieces in 'initial' / starting positions
     "};
     commands
@@ -25,9 +27,9 @@ pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
                 position_type: PositionType::Absolute,
                 justify_content: JustifyContent::FlexStart,
                 align_items: AlignItems::FlexStart,
-                position: Rect {
+                position: UiRect {
                     left: Val::Px(30.0),
-                    bottom: Val::Px(535.0),
+                    bottom: Val::Px(570.0),
                     ..default()
                 },
                 ..default()
@@ -47,8 +49,8 @@ pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
                         sections: vec![TextSection {
                             value: tips_text.to_string(),
                             style: TextStyle {
-                                font: text_assets.italic_font_handle.clone(),
-                                font_size: 16.0,
+                                font: text_assets.regular_font_handle.clone(),
+                                font_size: 14.0,
                                 color: Color::rgb(0.15, 0.15, 0.15),
                             },
                         }],
@@ -59,6 +61,6 @@ pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
                     },
                     ..Default::default()
                 })
-                .insert(TipsText);
+                .insert(ControlsText);
         });
 }

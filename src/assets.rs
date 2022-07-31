@@ -27,7 +27,8 @@ pub struct BoardAssets {
 #[derive(Component, Debug, Clone, Default)]
 pub struct TextAssets {
     pub regular_font_handle: Handle<Font>,
-    pub italic_font_handle: Handle<Font>,
+    pub bold_font_handle: Handle<Font>,
+    pub emoji_font_handle: Handle<Font>,
 }
 
 pub fn load_assets(
@@ -100,13 +101,16 @@ pub fn load_assets(
     board_assets.wb = textures.add(wb);
     board_assets.wp = textures.add(wp);
 
-    let regular_font_bytes = include_bytes!("../assets/font/RobotMono/RobotoMono-Bold.ttf");
-    let italic_font_bytes = include_bytes!("../assets/font/RobotMono/RobotoMono-Italic.ttf");
+    let regular_font_bytes = include_bytes!("../assets/font/NotoSansMono/NotoSansMono-Regular.ttf");
+    let bold_font_bytes = include_bytes!("../assets/font/NotoSansMono/NotoSansMono-Bold.ttf");
+    let emoji_font_bytes = include_bytes!("../assets/font/NotoEmoji/NotoEmoji-Bold.ttf");
 
     let regular_font = Font::try_from_bytes(regular_font_bytes.to_vec());
-    let italic_font = Font::try_from_bytes(italic_font_bytes.to_vec());
+    let bold_font = Font::try_from_bytes(bold_font_bytes.to_vec());
+    let emoji_font = Font::try_from_bytes(emoji_font_bytes.to_vec());
     fen_assets.regular_font_handle = fonts.add(regular_font.unwrap());
-    fen_assets.italic_font_handle = fonts.add(italic_font.unwrap());
+    fen_assets.bold_font_handle = fonts.add(bold_font.unwrap());
+    fen_assets.emoji_font_handle = fonts.add(emoji_font.unwrap());
 
     state.set(ChessState::Loaded).unwrap();
 }

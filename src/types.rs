@@ -1,29 +1,25 @@
 use std::collections::HashMap;
 
 use bevy::{
-    hierarchy::Children,
     math::Vec2,
-    prelude::{Component, With, Without},
-    ui::Interaction,
+    prelude::{With, Without},
 };
 
-use crate::pieces::{ActivePiece, SelectedPiece, SourcePiece};
+use crate::{
+    control_ux::ControlsText,
+    fen::FenText,
+    pieces::{ActivePiece, SelectedPiece, SourcePiece},
+};
 
 pub type Board = HashMap<&'static str, Vec2>;
-
-pub type ButtonInteraction<'a> = (&'a Interaction, &'a Children);
-
-#[derive(Component, Debug, Default)]
-pub struct BoardAssets {
-    pub dark_square: String,
-    pub light_square: String,
-}
 
 pub type WithSelectedPiece = (
     With<SelectedPiece>,
     Without<SourcePiece>,
     Without<ActivePiece>,
 );
+
+pub type WithFenText = (With<FenText>, Without<ControlsText>);
 
 pub type WithActivePiece = (
     With<ActivePiece>,
