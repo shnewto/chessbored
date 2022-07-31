@@ -1,0 +1,12 @@
+target
+Cargo*
+*git*
+.git*
+src
+blend
+.cargo
+img
+/assets
+README.md
+/styles.css
+/index.html

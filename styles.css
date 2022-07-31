@@ -1,0 +1,14 @@
+body {
+    margin: 0;
+    background-color: #8a8a8a;
+}
+
+canvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding-top: 4%;
+    background-color: #8a8a8a;
+    outline: none;
+}
