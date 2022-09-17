@@ -112,6 +112,7 @@ pub struct PieceMaterialHandles {
 
 #[derive(Component, Debug, Default)]
 pub struct ActivePiece;
+
 #[derive(Component, Debug, Default)]
 pub struct SourcePiece;
 
@@ -129,15 +130,16 @@ pub fn side_piece_selection(
         WithSourcePiece,
     )>,
     selected_query: Query<(&Piece, With<PickableMesh>, WithSelectedPiece)>,
+    mouse_button_input: Res<Input<MouseButton>>,
 ) {
     for event in events.iter() {
-        if let PickingEvent::Clicked(e) = event {
+        if let (PickingEvent::Selection(SelectionEvent::JustSelected(e)), true) = (event, mouse_button_input.pressed(MouseButton::Left)) {
             if let Ok((piece_selection, transform, mesh_handle, _, _)) = query.get(*e) {
                 if let Ok((_, _, _)) = selected_query.get_single() {
                     // disable picking a piece when one's already in hand
                     return;
                 }
-
+                println!("------------------ picking up piece!");
                 commands
                     .spawn_bundle(MaterialMesh2dBundle {
                         mesh: mesh_handle.clone(),
@@ -183,15 +185,74 @@ pub fn selection(
         With<PickableMesh>,
         WithSelectedPiece,
     )>,
+    mouse_button_input: Res<Input<MouseButton>>,
 ) {
     for event in events.iter() {
-        if let PickingEvent::Clicked(e) = event {
-            // we're clicking on a placed piece
+        // picking up
+        if let (PickingEvent::Selection(SelectionEvent::JustSelected(e)), true) = (event, mouse_button_input.pressed(MouseButton::Left)) {
             if let Ok((mut active_piece, active_transform, active_mesh, _, _)) =
-                active_query.get_mut(*e)
+            active_query.get_mut(*e)
+            {
+                println!("------------------ picking up piece!");
+
+                // there's no piece in hand so put the current selection in hand
+                commands
+                    .spawn_bundle(MaterialMesh2dBundle {
+                        mesh: active_mesh.clone(),
+                        transform: Transform::from_xyz(
+                            active_transform.translation.x,
+                            active_transform.translation.y,
+                            0.1,
+                        ),
+                        material: active_piece.sprite_handle.clone(),
+                        ..default()
+                    })
+                    .insert_bundle(PickableBundle {
+                        focus_policy: FocusPolicy::Pass,
+                        ..default()
+                    })
+                    .insert(Piece {
+                        def: active_piece.def.clone(),
+                        selected_translation: Some(active_transform.translation),
+                        sprite_handle: active_piece.sprite_handle.clone(),
+                        ..default()
+                    })
+                    .insert(SelectedPiece);
+                active_piece.stale = true;
+            }
+        }
+    }
+}
+
+pub fn drop_piece(
+    board: Res<Board>,
+    mut commands: Commands,
+    mut events: EventReader<PickingEvent>,
+    mut active_query: Query<(
+        &mut Piece,
+        &Transform,
+        &Mesh2dHandle,
+        With<PickableMesh>,
+        WithActivePiece,
+    )>,
+    mut selected_query: Query<(
+        &mut Piece,
+        &Transform,
+        &Mesh2dHandle,
+        With<PickableMesh>,
+        WithSelectedPiece,
+    )>,
+    mouse_button_input: Res<Input<MouseButton>>,
+) {
+    // placing
+    for event in events.iter() {
+        if let (PickingEvent::Hover(HoverEvent::JustEntered(e)), true) = (event, mouse_button_input.just_released(MouseButton::Left)) {
+            // placing on a piece
+            if let Ok((mut active_piece, active_transform, active_mesh, _, _)) =
+            active_query.get_mut(*e)
             {
                 if let Ok((mut selected_piece, selected_transform, selected_mesh, _, _)) =
-                    selected_query.get_single_mut()
+                selected_query.get_single_mut()
                 {
                     // there's a piece selected / in hand already
 
@@ -201,6 +262,8 @@ pub fn selection(
                         // don't allow grabbing more pieces from the when an piece is already in hand
                         return;
                     }
+
+                    println!("------------------ placing a piece on a piece!");
 
                     let (updated_x, updated_y) = if let Some(square) = get_square(
                         selected_transform.translation.x,
@@ -237,79 +300,59 @@ pub fn selection(
                         .insert(ActivePiece);
                     active_piece.stale = true;
                     selected_piece.stale = true;
-                } else {
-                    // there's no piece in hand so put the current selection in hand
-                    commands
-                        .spawn_bundle(MaterialMesh2dBundle {
-                            mesh: active_mesh.clone(),
-                            transform: Transform::from_xyz(
-                                active_transform.translation.x,
-                                active_transform.translation.y,
-                                0.1,
-                            ),
-                            material: active_piece.sprite_handle.clone(),
-                            ..default()
-                        })
-                        .insert_bundle(PickableBundle {
-                            focus_policy: FocusPolicy::Pass,
-                            ..default()
-                        })
-                        .insert(Piece {
-                            def: active_piece.def.clone(),
-                            selected_translation: Some(active_transform.translation),
-                            sprite_handle: active_piece.sprite_handle.clone(),
-                            ..default()
-                        })
-                        .insert(SelectedPiece);
-                    active_piece.stale = true;
                 }
             }
-            // there's no piece on the board, only one in hand
-            else if let Ok((mut selected_piece, selected_transform, selected_mesh, _, _)) =
-                selected_query.get_single_mut()
-            {
-                if selected_transform.translation.x > 360.0
-                    || selected_transform.translation.y < -10.0
-                {
-                    // don't allow placing on the right side of the board where the piece selections are
-                    return;
-                }
+        }
+    }
 
-                let (updated_x, updated_y) = if let Some(square) = get_square(
+    if mouse_button_input.just_released(MouseButton::Left) {
+        if let Ok((mut selected_piece, selected_transform, selected_mesh, _, _)) =
+        selected_query.get_single_mut()
+        {
+            println!("------------------ placing a piece!");
+
+            // placing on empty space
+            if selected_transform.translation.x > 360.0
+                || selected_transform.translation.y < -10.0
+            {
+                // don't allow placing on the right side of the board where the piece selections are
+                return;
+            }
+
+            let (updated_x, updated_y) = if let Some(square) = get_square(
+                selected_transform.translation.x,
+                selected_transform.translation.y,
+            ) {
+                (
+                    board.get(&*square.to_string()).unwrap().x,
+                    board.get(&*square.to_string()).unwrap().y,
+                )
+            } else {
+                (
                     selected_transform.translation.x,
                     selected_transform.translation.y,
-                ) {
-                    (
-                        board.get(&*square.to_string()).unwrap().x,
-                        board.get(&*square.to_string()).unwrap().y,
-                    )
-                } else {
-                    (
-                        selected_transform.translation.x,
-                        selected_transform.translation.y,
-                    )
-                };
+                )
+            };
 
-                commands
-                    .spawn_bundle(MaterialMesh2dBundle {
-                        mesh: selected_mesh.clone(),
-                        transform: Transform::from_xyz(updated_x, updated_y, 0.0),
-                        material: selected_piece.sprite_handle.clone(),
-                        ..default()
-                    })
-                    .insert_bundle(PickableBundle {
-                        focus_policy: FocusPolicy::Pass,
-                        ..default()
-                    })
-                    .insert(Piece {
-                        def: selected_piece.def.clone(),
-                        selected_translation: None,
-                        sprite_handle: selected_piece.sprite_handle.clone(),
-                        ..default()
-                    })
-                    .insert(ActivePiece);
-                selected_piece.stale = true;
-            }
+            commands
+                .spawn_bundle(MaterialMesh2dBundle {
+                    mesh: selected_mesh.clone(),
+                    transform: Transform::from_xyz(updated_x, updated_y, 0.0),
+                    material: selected_piece.sprite_handle.clone(),
+                    ..default()
+                })
+                .insert_bundle(PickableBundle {
+                    focus_policy: FocusPolicy::Pass,
+                    ..default()
+                })
+                .insert(Piece {
+                    def: selected_piece.def.clone(),
+                    selected_translation: None,
+                    sprite_handle: selected_piece.sprite_handle.clone(),
+                    ..default()
+                })
+                .insert(ActivePiece);
+            selected_piece.stale = true;
         }
     }
 }
