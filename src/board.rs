@@ -3,7 +3,7 @@ use std::{collections::HashMap, fmt};
 
 use crate::{assets::BoardAssets, types::Board};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum File {
     A,
     B,
@@ -30,7 +30,7 @@ impl fmt::Display for File {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Rank {
     One,
     Two,
@@ -57,7 +57,7 @@ impl fmt::Display for Rank {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Square {
     pub file: File,
     pub rank: Rank,

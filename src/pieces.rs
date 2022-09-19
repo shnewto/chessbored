@@ -5,7 +5,6 @@ use bevy::{
     ui::FocusPolicy,
 };
 use bevy_mod_picking::*;
-
 use crate::{
     assets::BoardAssets,
     board::get_square,
@@ -139,7 +138,6 @@ pub fn side_piece_selection(
                     // disable picking a piece when one's already in hand
                     return;
                 }
-                println!("------------------ picking up piece!");
                 commands
                     .spawn_bundle(MaterialMesh2dBundle {
                         mesh: mesh_handle.clone(),
@@ -168,7 +166,6 @@ pub fn side_piece_selection(
 }
 
 pub fn selection(
-    board: Res<Board>,
     mut commands: Commands,
     mut events: EventReader<PickingEvent>,
     mut active_query: Query<(
@@ -178,13 +175,6 @@ pub fn selection(
         With<PickableMesh>,
         WithActivePiece,
     )>,
-    mut selected_query: Query<(
-        &mut Piece,
-        &Transform,
-        &Mesh2dHandle,
-        With<PickableMesh>,
-        WithSelectedPiece,
-    )>,
     mouse_button_input: Res<Input<MouseButton>>,
 ) {
     for event in events.iter() {
@@ -193,8 +183,6 @@ pub fn selection(
             if let Ok((mut active_piece, active_transform, active_mesh, _, _)) =
             active_query.get_mut(*e)
             {
-                println!("------------------ picking up piece!");
-
                 // there's no piece in hand so put the current selection in hand
                 commands
                     .spawn_bundle(MaterialMesh2dBundle {
@@ -227,7 +215,6 @@ pub fn selection(
 pub fn drop_piece(
     board: Res<Board>,
     mut commands: Commands,
-    mut events: EventReader<PickingEvent>,
     mut active_query: Query<(
         &mut Piece,
         &Transform,
@@ -244,74 +231,10 @@ pub fn drop_piece(
     )>,
     mouse_button_input: Res<Input<MouseButton>>,
 ) {
-    // placing
-    for event in events.iter() {
-        if let (PickingEvent::Hover(HoverEvent::JustEntered(e)), true) = (event, mouse_button_input.just_released(MouseButton::Left)) {
-            // placing on a piece
-            if let Ok((mut active_piece, active_transform, active_mesh, _, _)) =
-            active_query.get_mut(*e)
-            {
-                if let Ok((mut selected_piece, selected_transform, selected_mesh, _, _)) =
-                selected_query.get_single_mut()
-                {
-                    // there's a piece selected / in hand already
-
-                    if selected_transform.translation.x > 360.0
-                        || selected_transform.translation.y < -10.0
-                    {
-                        // don't allow grabbing more pieces from the when an piece is already in hand
-                        return;
-                    }
-
-                    println!("------------------ placing a piece on a piece!");
-
-                    let (updated_x, updated_y) = if let Some(square) = get_square(
-                        selected_transform.translation.x,
-                        selected_transform.translation.y,
-                    ) {
-                        (
-                            board.get(&*square.to_string()).unwrap().x,
-                            board.get(&*square.to_string()).unwrap().y,
-                        )
-                    } else {
-                        (
-                            selected_transform.translation.x,
-                            selected_transform.translation.y,
-                        )
-                    };
-
-                    commands
-                        .spawn_bundle(MaterialMesh2dBundle {
-                            mesh: selected_mesh.clone(),
-                            transform: Transform::from_xyz(updated_x, updated_y, 0.0),
-                            material: selected_piece.sprite_handle.clone(),
-                            ..default()
-                        })
-                        .insert_bundle(PickableBundle {
-                            focus_policy: FocusPolicy::Pass,
-                            ..default()
-                        })
-                        .insert(Piece {
-                            def: selected_piece.def.clone(),
-                            selected_translation: None,
-                            sprite_handle: selected_piece.sprite_handle.clone(),
-                            ..default()
-                        })
-                        .insert(ActivePiece);
-                    active_piece.stale = true;
-                    selected_piece.stale = true;
-                }
-            }
-        }
-    }
-
     if mouse_button_input.just_released(MouseButton::Left) {
         if let Ok((mut selected_piece, selected_transform, selected_mesh, _, _)) =
         selected_query.get_single_mut()
         {
-            println!("------------------ placing a piece!");
-
-            // placing on empty space
             if selected_transform.translation.x > 360.0
                 || selected_transform.translation.y < -10.0
             {
@@ -333,6 +256,23 @@ pub fn drop_piece(
                     selected_transform.translation.y,
                 )
             };
+
+            for (mut active_piece, active_transform, _, _, _) in active_query.iter_mut() {
+                let selected_square = get_square(
+                    selected_transform.translation.x,
+                    selected_transform.translation.y,
+                );
+
+                let active_square = get_square(
+                    active_transform.translation.x,
+                    active_transform.translation.y,
+                );
+
+                if selected_square.is_some() && active_square == selected_square {
+                    // placing on occupied space
+                    active_piece.stale = true;
+                }
+            }
 
             commands
                 .spawn_bundle(MaterialMesh2dBundle {
