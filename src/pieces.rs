@@ -1,3 +1,9 @@
+use crate::{
+    assets::BoardAssets,
+    board::get_square,
+    camera::ChessCamera,
+    types::{Board, WithActivePiece, WithSelectedPiece, WithSourcePiece},
+};
 use bevy::{
     prelude::*,
     render::camera::RenderTarget,
@@ -5,12 +11,6 @@ use bevy::{
     ui::FocusPolicy,
 };
 use bevy_mod_picking::*;
-use crate::{
-    assets::BoardAssets,
-    board::get_square,
-    camera::ChessCamera,
-    types::{Board, WithActivePiece, WithSelectedPiece, WithSourcePiece},
-};
 
 #[derive(Debug, Clone)]
 pub enum Side {
@@ -132,12 +132,15 @@ pub fn side_piece_selection(
     mouse_button_input: Res<Input<MouseButton>>,
 ) {
     for event in events.iter() {
-        if let (PickingEvent::Selection(SelectionEvent::JustSelected(e)), true) = (event, mouse_button_input.pressed(MouseButton::Left)) {
+        if let (PickingEvent::Clicked(e), true) =
+            (event, mouse_button_input.pressed(MouseButton::Left))
+        {
             if let Ok((piece_selection, transform, mesh_handle, _, _)) = query.get(*e) {
                 if let Ok((_, _, _)) = selected_query.get_single() {
                     // disable picking a piece when one's already in hand
                     return;
                 }
+
                 commands
                     .spawn_bundle(MaterialMesh2dBundle {
                         mesh: mesh_handle.clone(),
@@ -155,7 +158,7 @@ pub fn side_piece_selection(
                     })
                     .insert(Piece {
                         def: piece_selection.def.clone(),
-                        selected_translation: None,
+                        selected_translation: Some(transform.translation),
                         sprite_handle: piece_selection.sprite_handle.clone(),
                         ..default()
                     })
@@ -179,9 +182,11 @@ pub fn selection(
 ) {
     for event in events.iter() {
         // picking up
-        if let (PickingEvent::Selection(SelectionEvent::JustSelected(e)), true) = (event, mouse_button_input.pressed(MouseButton::Left)) {
+        if let (PickingEvent::Clicked(e), true) =
+            (event, mouse_button_input.pressed(MouseButton::Left))
+        {
             if let Ok((mut active_piece, active_transform, active_mesh, _, _)) =
-            active_query.get_mut(*e)
+                active_query.get_mut(*e)
             {
                 // there's no piece in hand so put the current selection in hand
                 commands
@@ -233,10 +238,9 @@ pub fn drop_piece(
 ) {
     if mouse_button_input.just_released(MouseButton::Left) {
         if let Ok((mut selected_piece, selected_transform, selected_mesh, _, _)) =
-        selected_query.get_single_mut()
+            selected_query.get_single_mut()
         {
-            if selected_transform.translation.x > 360.0
-                || selected_transform.translation.y < -10.0
+            if selected_transform.translation.x > 360.0 || selected_transform.translation.y < -10.0
             {
                 // don't allow placing on the right side of the board where the piece selections are
                 return;
