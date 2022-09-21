@@ -38,6 +38,7 @@ pub fn main() {
         .add_plugin(PickingPlugin)
         .add_plugin(InteractablePickingPlugin)
         .add_plugin(EguiPlugin)
+        // .add_plugin(DebugCursorPickingPlugin)
         // .add_plugin(DebugEventsPickingPlugin)
         .add_system_set(SystemSet::on_update(state::ChessState::Setup).with_system(setup))
         .add_system_set(
@@ -102,9 +103,15 @@ pub fn main() {
         )
         .add_system_set(
             SystemSet::on_update(state::ChessState::Running)
+                .with_system(pieces::drop_piece)
+                .label("drop_piece")
+                .after("side_piece_selection"),
+        )
+        .add_system_set(
+            SystemSet::on_update(state::ChessState::Running)
                 .with_system(fen::generate_fen)
                 .label("generate_fen")
-                .after("side_piece_selection"),
+                .after("drop_piece"),
         )
         .add_system_set(
             SystemSet::on_update(state::ChessState::Running)
