@@ -9,7 +9,6 @@ pub struct ControlsText;
 pub struct TipsElement;
 
 pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
-    let clear_color_hex_string = "69696b";
     let tips_text = indoc! {"
         controls
         --------------------
@@ -20,47 +19,26 @@ pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
         cmd + c: copy current FEN to clipboard
         i: all pieces in 'initial' / starting positions
     "};
-    commands
-        .spawn_bundle(NodeBundle {
-            style: Style {
-                size: Size::new(Val::Px(100.0), Val::Px(10.0)),
-                position_type: PositionType::Absolute,
-                justify_content: JustifyContent::FlexStart,
-                align_items: AlignItems::FlexStart,
-                position: UiRect {
-                    left: Val::Px(30.0),
-                    bottom: Val::Px(570.0),
-                    ..default()
-                },
-                ..default()
-            },
-            color: Color::hex(clear_color_hex_string)
-                .unwrap_or_else(|_| {
-                    panic!("couldn't make hex color from {}", clear_color_hex_string)
-                })
-                .into(),
-            ..Default::default()
-        })
-        .insert(TipsElement)
-        .with_children(|parent| {
-            parent
-                .spawn_bundle(TextBundle {
-                    text: Text {
-                        sections: vec![TextSection {
-                            value: tips_text.to_string(),
-                            style: TextStyle {
-                                font: text_assets.regular_font_handle.clone(),
-                                font_size: 14.0,
-                                color: Color::rgb(0.15, 0.15, 0.15),
-                            },
-                        }],
-                        alignment: TextAlignment {
-                            vertical: VerticalAlign::Center,
-                            horizontal: HorizontalAlign::Left,
-                        },
-                    },
-                    ..Default::default()
-                })
-                .insert(ControlsText);
-        });
+
+    let text_style = TextStyle {
+        font: text_assets.regular_font_handle.clone(),
+        font_size: 14.0,
+        color: Color::rgb(0.15, 0.15, 0.15),
+    };
+
+    let text_alignment = TextAlignment::TOP_LEFT;
+
+    commands.spawn_bundle(
+        Text2dBundle {
+            text: Text::from_section(tips_text, text_style.clone()).with_alignment(text_alignment),
+            transform: Transform::from_xyz(
+                -140.0,
+                510.0,
+                1.0,
+            ),
+            ..default()
+        },
+        // AnimateScale,
+    ).insert(TipsElement)
+    .insert(ControlsText);
 }

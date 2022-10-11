@@ -37,162 +37,142 @@ impl Default for SavedFenState {
         }
     }
 }
-
-pub fn toggle_save_position(
-    mut commands: Commands,
-    mut saved_fen: ResMut<SavedFenState>,
-    fen_assets: Res<TextAssets>,
-    keys: Res<Input<KeyCode>>,
-) {
-    let clear_color_hex_string = "69696b";
-    let text_color_hex_string = "a1a1a1";
-
-    if (keys.pressed(KeyCode::RShift) || keys.pressed(KeyCode::LShift)) && keys.pressed(KeyCode::S)
-    {
-        // clear saved
-        if let Some(entity) = saved_fen.text_entity {
-            commands.entity(entity).despawn_recursive();
-            saved_fen.text_entity = None;
-            saved_fen.saved = "".into();
-        }
-    } else if keys.pressed(KeyCode::S) {
-        // save / overwite saved
-        if let Some(entity) = saved_fen.text_entity {
-            commands.entity(entity).despawn_recursive();
-            saved_fen.text_entity = None;
-            saved_fen.saved = "".into();
-        }
-
-        let display_text = format!("saved: {}", saved_fen.curr.clone());
-        let entity: Entity = commands
-            .spawn_bundle(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(400.0), Val::Px(40.0)),
-                    position_type: PositionType::Absolute,
-                    justify_content: JustifyContent::FlexStart,
-                    align_items: AlignItems::FlexStart,
-                    position: UiRect {
-                        left: Val::Px(30.0),
-                        bottom: Val::Px(65.0),
-                        ..default()
-                    },
-                    ..default()
-                },
-                color: Color::hex(clear_color_hex_string)
-                    .unwrap_or_else(|_| {
-                        panic!("couldn't make hex color from {}", clear_color_hex_string)
-                    })
-                    .into(),
-                ..Default::default()
-            })
-            .insert(FenElement)
-            .with_children(|parent| {
-                parent.spawn_bundle(TextBundle {
-                    text: Text {
-                        sections: vec![TextSection {
-                            value: display_text.clone(),
-                            style: TextStyle {
-                                font: fen_assets.regular_font_handle.clone(),
-                                font_size: 14.0,
-                                color: Color::hex(text_color_hex_string).unwrap_or_else(|_| {
-                                    panic!("couldn't make hex color from {}", text_color_hex_string)
-                                }),
-                            },
-                        }],
-                        alignment: TextAlignment {
-                            vertical: VerticalAlign::Center,
-                            horizontal: HorizontalAlign::Center,
-                        },
-                    },
-                    ..Default::default()
-                });
-            })
-            .id();
-        saved_fen.text_entity = Some(entity);
-        saved_fen.saved = saved_fen.curr.clone();
-    }
-}
+//
+// pub fn toggle_save_position(
+//     mut commands: Commands,
+//     mut saved_fen: ResMut<SavedFenState>,
+//     fen_assets: Res<TextAssets>,
+//     keys: Res<Input<KeyCode>>,
+// ) {
+//     let clear_color_hex_string = "69696b";
+//     let text_color_hex_string = "a1a1a1";
+//
+//     if (keys.pressed(KeyCode::RShift) || keys.pressed(KeyCode::LShift)) && keys.pressed(KeyCode::S)
+//     {
+//         // clear saved
+//         if let Some(entity) = saved_fen.text_entity {
+//             commands.entity(entity).despawn_recursive();
+//             saved_fen.text_entity = None;
+//             saved_fen.saved = "".into();
+//         }
+//     } else if keys.pressed(KeyCode::S) {
+//         // save / overwite saved
+//         if let Some(entity) = saved_fen.text_entity {
+//             commands.entity(entity).despawn_recursive();
+//             saved_fen.text_entity = None;
+//             saved_fen.saved = "".into();
+//         }
+//
+//         let display_text = format!("saved: {}", saved_fen.curr.clone());
+//         let entity: Entity = commands
+//             .spawn_bundle(ButtonBundle {
+//                 style: Style {
+//                     size: Size::new(Val::Px(400.0), Val::Px(40.0)),
+//                     position_type: PositionType::Absolute,
+//                     justify_content: JustifyContent::FlexStart,
+//                     align_items: AlignItems::FlexStart,
+//                     position: UiRect {
+//                         left: Val::Px(30.0),
+//                         bottom: Val::Px(65.0),
+//                         ..default()
+//                     },
+//                     ..default()
+//                 },
+//                 color: Color::hex(clear_color_hex_string)
+//                     .unwrap_or_else(|_| {
+//                         panic!("couldn't make hex color from {}", clear_color_hex_string)
+//                     })
+//                     .into(),
+//                 ..Default::default()
+//             })
+//             .insert(FenElement)
+//             .with_children(|parent| {
+//                 parent.spawn_bundle(TextBundle {
+//                     text: Text {
+//                         sections: vec![TextSection {
+//                             value: display_text.clone(),
+//                             style: TextStyle {
+//                                 font: fen_assets.regular_font_handle.clone(),
+//                                 font_size: 14.0,
+//                                 color: Color::hex(text_color_hex_string).unwrap_or_else(|_| {
+//                                     panic!("couldn't make hex color from {}", text_color_hex_string)
+//                                 }),
+//                             },
+//                         }],
+//                         alignment: TextAlignment {
+//                             vertical: VerticalAlign::Center,
+//                             horizontal: HorizontalAlign::Center,
+//                         },
+//                     },
+//                     ..Default::default()
+//                 });
+//             })
+//             .id();
+//         saved_fen.text_entity = Some(entity);
+//         saved_fen.saved = saved_fen.curr.clone();
+//     }
+// }
 
 pub fn spawn(mut commands: Commands, fen_assets: Res<TextAssets>) {
-    let clear_color_hex_string = "69696b";
     let txt_val = "FEN NOTATION";
     let positions_text = indoc! {"
         position
         --------------------
         current: "};
 
-    commands
-        .spawn_bundle(NodeBundle {
-            style: Style {
-                size: Size::new(Val::Px(400.0), Val::Px(40.0)),
-                position_type: PositionType::Absolute,
-                justify_content: JustifyContent::FlexStart,
-                align_items: AlignItems::FlexStart,
-                position: UiRect {
-                    left: Val::Px(30.0),
-                    bottom: Val::Px(80.0),
-                    ..default()
-                },
-                ..default()
-            },
-            color: Color::hex(clear_color_hex_string)
-                .unwrap_or_else(|_| {
-                    panic!("couldn't make hex color from {}", clear_color_hex_string)
-                })
-                .into(),
-            ..Default::default()
-        })
-        .insert(FenElement)
-        .with_children(|parent| {
-            parent
-                .spawn_bundle(TextBundle {
-                    text: Text {
-                        sections: vec![
-                            TextSection {
-                                value: positions_text.to_string(),
-                                style: TextStyle {
-                                    font: fen_assets.regular_font_handle.clone(),
-                                    font_size: 14.0,
-                                    color: Color::rgb(0.15, 0.15, 0.15),
-                                },
-                            },
-                            TextSection {
-                                value: txt_val.to_string(),
-                                style: TextStyle {
-                                    font: fen_assets.regular_font_handle.clone(),
-                                    font_size: 14.0,
-                                    color: Color::rgb(0.15, 0.15, 0.15),
-                                },
-                            },
-                        ],
-                        alignment: TextAlignment {
-                            vertical: VerticalAlign::Center,
-                            horizontal: HorizontalAlign::Left,
-                        },
-                    },
-                    ..default()
-                })
-                .insert(FenText);
-        });
+
+    let text_style = TextStyle {
+        font: fen_assets.regular_font_handle.clone(),
+        font_size: 14.0,
+        color: Color::rgb(0.15, 0.15, 0.15),
+    };
+
+    let text_alignment = TextAlignment::TOP_LEFT;
+
+    commands.spawn_bundle(
+        Text2dBundle {
+            text: Text::from_section(positions_text, text_style.clone()).with_alignment(text_alignment),
+            transform: Transform::from_xyz(
+                -140.0,
+                -32.0,
+                1.0,
+            ),
+            ..default()
+        },
+        // AnimateScale,
+    ).insert(FenElement);
+
+    commands.spawn_bundle(
+        Text2dBundle {
+            text: Text::from_section(txt_val, text_style).with_alignment(text_alignment),
+            transform: Transform::from_xyz(
+                -80.0,
+                -60.0,
+                1.0,
+            ),
+            ..default()
+        },
+        // AnimateScale,
+    ).insert(FenText);
 }
 
 pub fn copy_to_clipboard(
-    mut clipboard: ResMut<bevy_egui::EguiClipboard>,
-    keys: Res<Input<KeyCode>>,
-    mut fen_text_query: Query<&mut Text, WithFenText>,
+    _clipboard: ResMut<bevy_egui::EguiClipboard>,
+    _keys: Res<Input<KeyCode>>,
+    _fen_text_query: Query<&mut Text, WithFenText>,
 ) {
-    let clicked_color_hex_string = "a1a1a1";
-    if let Ok(mut fen_text) = fen_text_query.get_single_mut() {
-        if keys.pressed(KeyCode::LWin) && keys.pressed(KeyCode::C) {
-            clipboard.set_contents(&fen_text.sections[1].value);
-            fen_text.sections[1].style.color =
-                Color::hex(clicked_color_hex_string).unwrap_or_else(|_| {
-                    panic!("couldn't make hex color from {}", clicked_color_hex_string)
-                });
-        } else {
-            fen_text.sections[1].style.color = Color::rgb(0.15, 0.15, 0.15);
-        }
-    }
+    // let clicked_color_hex_string = "a1a1a1";
+    // if let Ok(mut fen_text) = fen_text_query.get_single_mut() {
+    //     if keys.pressed(KeyCode::LWin) && keys.pressed(KeyCode::C) {
+    //         clipboard.set_contents(&fen_text.sections[1].value);
+    //         fen_text.sections[1].style.color =
+    //             Color::hex(clicked_color_hex_string).unwrap_or_else(|_| {
+    //                 panic!("couldn't make hex color from {}", clicked_color_hex_string)
+    //             });
+    //     } else {
+    //         fen_text.sections[1].style.color = Color::rgb(0.15, 0.15, 0.15);
+    //     }
+    // }
 }
 
 pub fn populate_board_from_fen(
@@ -290,7 +270,9 @@ pub fn piece_for_fen_char(piece: char) -> Option<Side> {
         _ => None,
     }
 }
+
 pub fn generate_fen(
+    text_assets: Res<TextAssets>,
     mut text_query: Query<&mut Text, WithFenText>,
     mut saved_fen_state: ResMut<SavedFenState>,
     active_pieces_query: Query<(&Piece, &Transform, WithActivePiece)>,
@@ -316,8 +298,16 @@ pub fn generate_fen(
 
     saved_fen_state.curr = fen.clone();
 
+
     if let Ok(mut text) = text_query.get_single_mut() {
-        text.sections[1].value = fen.into();
+
+        let text_style = TextStyle {
+            font: text_assets.regular_font_handle.clone(),
+            font_size: 14.0,
+            color: Color::rgb(0.15, 0.15, 0.15),
+        };
+        let text_alignment = TextAlignment::TOP_LEFT;
+        *text = Text::from_section(fen, text_style).with_alignment(text_alignment);
     }
 }
 

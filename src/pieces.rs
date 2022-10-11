@@ -1,3 +1,4 @@
+use crate::board::ActiveSquare;
 use crate::{
     assets::BoardAssets,
     board::get_square,
@@ -148,7 +149,7 @@ pub fn side_piece_selection(
                         transform: Transform::from_xyz(
                             transform.translation.x,
                             transform.translation.y,
-                            0.1,
+                            10.0,
                         ),
                         ..default()
                     })
@@ -171,6 +172,7 @@ pub fn side_piece_selection(
 pub fn selection(
     mut commands: Commands,
     mut events: EventReader<PickingEvent>,
+    board_assets: Res<BoardAssets>,
     mut active_query: Query<(
         &mut Piece,
         &Transform,
@@ -188,6 +190,25 @@ pub fn selection(
             if let Ok((mut active_piece, active_transform, active_mesh, _, _)) =
                 active_query.get_mut(*e)
             {
+                if get_square(
+                    active_transform.translation.x,
+                    active_transform.translation.y,
+                )
+                .is_some()
+                {
+                    commands
+                        .spawn_bundle(SpriteBundle {
+                            texture: board_assets.square_selected_handle.clone(),
+                            transform: Transform::from_xyz(
+                                active_transform.translation.x,
+                                active_transform.translation.y,
+                                1.0,
+                            ),
+                            ..default()
+                        })
+                        .insert(ActiveSquare { stale: false });
+                }
+
                 // there's no piece in hand so put the current selection in hand
                 commands
                     .spawn_bundle(MaterialMesh2dBundle {
@@ -195,7 +216,7 @@ pub fn selection(
                         transform: Transform::from_xyz(
                             active_transform.translation.x,
                             active_transform.translation.y,
-                            0.1,
+                            10.0,
                         ),
                         material: active_piece.sprite_handle.clone(),
                         ..default()
@@ -227,6 +248,7 @@ pub fn drop_piece(
         With<PickableMesh>,
         WithActivePiece,
     )>,
+    mut active_square_query: Query<&mut ActiveSquare>,
     mut selected_query: Query<(
         &mut Piece,
         &Transform,
@@ -240,10 +262,8 @@ pub fn drop_piece(
         if let Ok((mut selected_piece, selected_transform, selected_mesh, _, _)) =
             selected_query.get_single_mut()
         {
-            if selected_transform.translation.x > 360.0 || selected_transform.translation.y < -10.0
-            {
-                // don't allow placing on the right side of the board where the piece selections are
-                return;
+            if let Ok(mut active_square) = active_square_query.get_single_mut() {
+                active_square.stale = true;
             }
 
             let (updated_x, updated_y) = if let Some(square) = get_square(
@@ -255,10 +275,8 @@ pub fn drop_piece(
                     board.get(&*square.to_string()).unwrap().y,
                 )
             } else {
-                (
-                    selected_transform.translation.x,
-                    selected_transform.translation.y,
-                )
+                selected_piece.stale = true;
+                return;
             };
 
             for (mut active_piece, active_transform, _, _, _) in active_query.iter_mut() {
@@ -323,6 +341,7 @@ pub fn piece_movement(
                 camera_transform.compute_matrix() * camera.projection_matrix().inverse();
 
             let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
+            // let world_pos = ndc_to_world.project_point3(ndc.extend(-10.0));
 
             transform.translation.x = world_pos.x;
             transform.translation.y = world_pos.y;
@@ -378,6 +397,7 @@ pub fn clear_board(
     mut commands: Commands,
     mut active_query: Query<(Entity, &Piece, With<PickableMesh>, WithActivePiece)>,
     mut selected_query: Query<(Entity, &Piece, With<PickableMesh>, WithSelectedPiece)>,
+    mut active_square_query: Query<(Entity, &ActiveSquare)>,
     keys: Res<Input<KeyCode>>,
 ) {
     for (entity, piece, _, _) in active_query.iter_mut() {
@@ -391,6 +411,12 @@ pub fn clear_board(
 
     for (entity, piece, _, _) in selected_query.iter_mut() {
         if piece.stale {
+            commands.entity(entity).despawn_recursive();
+        }
+    }
+
+    for (entity, square) in active_square_query.iter_mut() {
+        if square.stale {
             commands.entity(entity).despawn_recursive();
         }
     }

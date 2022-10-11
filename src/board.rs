@@ -42,6 +42,11 @@ pub enum Rank {
     Eight,
 }
 
+#[derive(Component, Debug, Default)]
+pub struct ActiveSquare {
+    pub stale: bool,
+}
+
 impl fmt::Display for Rank {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match self {
