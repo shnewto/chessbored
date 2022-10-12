@@ -113,17 +113,17 @@ pub fn main() {
                 .label("generate_fen")
                 .after("drop_piece"),
         )
-        // .add_system_set(
-        //     SystemSet::on_update(state::ChessState::Running)
-        //         .with_system(fen::toggle_save_position)
-        //         .label("toggle_save_position")
-        //         .after("generate_fen"),
-        // )
+        .add_system_set(
+            SystemSet::on_update(state::ChessState::Running)
+                .with_system(fen::toggle_save_position)
+                .label("toggle_save_position")
+                .after("generate_fen"),
+        )
         .add_system_set(
             SystemSet::on_update(state::ChessState::Running)
                 .with_system(fen::populate_board_from_fen)
                 .label("populate_board_from_fen")
-                .after("generate_fen"),
+                .after("toggle_save_position"),
         )
         .add_system_set(
             SystemSet::on_update(state::ChessState::Running)
