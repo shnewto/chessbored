@@ -43,7 +43,13 @@ pub enum Rank {
 }
 
 #[derive(Component, Debug, Default)]
-pub struct ActiveSquare {
+pub struct ActiveSquareHighlight {
+    pub square: Option<Square>,
+    pub stale: bool,
+}
+
+#[derive(Component, Debug, Default)]
+pub struct LegalMoveHighlight {
     pub stale: bool,
 }
 
@@ -79,6 +85,158 @@ impl Square {
         Square {
             file: rank,
             rank: file,
+        }
+    }
+
+    pub fn location_from_shakmaty(square: shakmaty::Square, board: &Board) -> Option<&Vec2> {
+        match square {
+            shakmaty::Square::A1 => board.get("a1"),
+            shakmaty::Square::A2 => board.get("a2"),
+            shakmaty::Square::A3 => board.get("a3"),
+            shakmaty::Square::A4 => board.get("a4"),
+            shakmaty::Square::A5 => board.get("a5"),
+            shakmaty::Square::A6 => board.get("a6"),
+            shakmaty::Square::A7 => board.get("a7"),
+            shakmaty::Square::A8 => board.get("a8"),
+
+            shakmaty::Square::B1 => board.get("b1"),
+            shakmaty::Square::B2 => board.get("b2"),
+            shakmaty::Square::B3 => board.get("b3"),
+            shakmaty::Square::B4 => board.get("b4"),
+            shakmaty::Square::B5 => board.get("b5"),
+            shakmaty::Square::B6 => board.get("b6"),
+            shakmaty::Square::B7 => board.get("b7"),
+            shakmaty::Square::B8 => board.get("b8"),
+
+            shakmaty::Square::C1 => board.get("c1"),
+            shakmaty::Square::C2 => board.get("c2"),
+            shakmaty::Square::C3 => board.get("c3"),
+            shakmaty::Square::C4 => board.get("c4"),
+            shakmaty::Square::C5 => board.get("c5"),
+            shakmaty::Square::C6 => board.get("c6"),
+            shakmaty::Square::C7 => board.get("c7"),
+            shakmaty::Square::C8 => board.get("c8"),
+
+            shakmaty::Square::D1 => board.get("d1"),
+            shakmaty::Square::D2 => board.get("d2"),
+            shakmaty::Square::D3 => board.get("d3"),
+            shakmaty::Square::D4 => board.get("d4"),
+            shakmaty::Square::D5 => board.get("d5"),
+            shakmaty::Square::D6 => board.get("d6"),
+            shakmaty::Square::D7 => board.get("d7"),
+            shakmaty::Square::D8 => board.get("d8"),
+
+            shakmaty::Square::E1 => board.get("e1"),
+            shakmaty::Square::E2 => board.get("e2"),
+            shakmaty::Square::E3 => board.get("e3"),
+            shakmaty::Square::E4 => board.get("e4"),
+            shakmaty::Square::E5 => board.get("e5"),
+            shakmaty::Square::E6 => board.get("e6"),
+            shakmaty::Square::E7 => board.get("e7"),
+            shakmaty::Square::E8 => board.get("e8"),
+
+            shakmaty::Square::F1 => board.get("f1"),
+            shakmaty::Square::F2 => board.get("f2"),
+            shakmaty::Square::F3 => board.get("f3"),
+            shakmaty::Square::F4 => board.get("f4"),
+            shakmaty::Square::F5 => board.get("f5"),
+            shakmaty::Square::F6 => board.get("f6"),
+            shakmaty::Square::F7 => board.get("f7"),
+            shakmaty::Square::F8 => board.get("f8"),
+
+            shakmaty::Square::G1 => board.get("g1"),
+            shakmaty::Square::G2 => board.get("g2"),
+            shakmaty::Square::G3 => board.get("g3"),
+            shakmaty::Square::G4 => board.get("g4"),
+            shakmaty::Square::G5 => board.get("g5"),
+            shakmaty::Square::G6 => board.get("g6"),
+            shakmaty::Square::G7 => board.get("g7"),
+            shakmaty::Square::G8 => board.get("g8"),
+
+            shakmaty::Square::H1 => board.get("h1"),
+            shakmaty::Square::H2 => board.get("h2"),
+            shakmaty::Square::H3 => board.get("h3"),
+            shakmaty::Square::H4 => board.get("h4"),
+            shakmaty::Square::H5 => board.get("h5"),
+            shakmaty::Square::H6 => board.get("h6"),
+            shakmaty::Square::H7 => board.get("h7"),
+            shakmaty::Square::H8 => board.get("h8"),
+        }
+    }
+
+    pub fn to_shakmaty(square: Square) -> shakmaty::Square {
+        match (square.file, square.rank) {
+            (File::A, Rank::One) => shakmaty::Square::A1,
+            (File::A, Rank::Two) => shakmaty::Square::A2,
+            (File::A, Rank::Three) => shakmaty::Square::A3,
+            (File::A, Rank::Four) => shakmaty::Square::A4,
+            (File::A, Rank::Five) => shakmaty::Square::A5,
+            (File::A, Rank::Six) => shakmaty::Square::A6,
+            (File::A, Rank::Seven) => shakmaty::Square::A7,
+            (File::A, Rank::Eight) => shakmaty::Square::A8,
+
+            (File::B, Rank::One) => shakmaty::Square::B1,
+            (File::B, Rank::Two) => shakmaty::Square::B2,
+            (File::B, Rank::Three) => shakmaty::Square::B3,
+            (File::B, Rank::Four) => shakmaty::Square::B4,
+            (File::B, Rank::Five) => shakmaty::Square::B5,
+            (File::B, Rank::Six) => shakmaty::Square::B6,
+            (File::B, Rank::Seven) => shakmaty::Square::B7,
+            (File::B, Rank::Eight) => shakmaty::Square::B8,
+
+            (File::C, Rank::One) => shakmaty::Square::C1,
+            (File::C, Rank::Two) => shakmaty::Square::C2,
+            (File::C, Rank::Three) => shakmaty::Square::C3,
+            (File::C, Rank::Four) => shakmaty::Square::C4,
+            (File::C, Rank::Five) => shakmaty::Square::C5,
+            (File::C, Rank::Six) => shakmaty::Square::C6,
+            (File::C, Rank::Seven) => shakmaty::Square::C7,
+            (File::C, Rank::Eight) => shakmaty::Square::C8,
+
+            (File::D, Rank::One) => shakmaty::Square::D1,
+            (File::D, Rank::Two) => shakmaty::Square::D2,
+            (File::D, Rank::Three) => shakmaty::Square::D3,
+            (File::D, Rank::Four) => shakmaty::Square::D4,
+            (File::D, Rank::Five) => shakmaty::Square::D5,
+            (File::D, Rank::Six) => shakmaty::Square::D6,
+            (File::D, Rank::Seven) => shakmaty::Square::D7,
+            (File::D, Rank::Eight) => shakmaty::Square::D8,
+
+            (File::E, Rank::One) => shakmaty::Square::E1,
+            (File::E, Rank::Two) => shakmaty::Square::E2,
+            (File::E, Rank::Three) => shakmaty::Square::E3,
+            (File::E, Rank::Four) => shakmaty::Square::E4,
+            (File::E, Rank::Five) => shakmaty::Square::E5,
+            (File::E, Rank::Six) => shakmaty::Square::E6,
+            (File::E, Rank::Seven) => shakmaty::Square::E7,
+            (File::E, Rank::Eight) => shakmaty::Square::E8,
+
+            (File::F, Rank::One) => shakmaty::Square::F1,
+            (File::F, Rank::Two) => shakmaty::Square::F2,
+            (File::F, Rank::Three) => shakmaty::Square::F3,
+            (File::F, Rank::Four) => shakmaty::Square::F4,
+            (File::F, Rank::Five) => shakmaty::Square::F5,
+            (File::F, Rank::Six) => shakmaty::Square::F6,
+            (File::F, Rank::Seven) => shakmaty::Square::F7,
+            (File::F, Rank::Eight) => shakmaty::Square::F8,
+
+            (File::G, Rank::One) => shakmaty::Square::G1,
+            (File::G, Rank::Two) => shakmaty::Square::G2,
+            (File::G, Rank::Three) => shakmaty::Square::G3,
+            (File::G, Rank::Four) => shakmaty::Square::G4,
+            (File::G, Rank::Five) => shakmaty::Square::G5,
+            (File::G, Rank::Six) => shakmaty::Square::G6,
+            (File::G, Rank::Seven) => shakmaty::Square::G7,
+            (File::G, Rank::Eight) => shakmaty::Square::G8,
+
+            (File::H, Rank::One) => shakmaty::Square::H1,
+            (File::H, Rank::Two) => shakmaty::Square::H2,
+            (File::H, Rank::Three) => shakmaty::Square::H3,
+            (File::H, Rank::Four) => shakmaty::Square::H4,
+            (File::H, Rank::Five) => shakmaty::Square::H5,
+            (File::H, Rank::Six) => shakmaty::Square::H6,
+            (File::H, Rank::Seven) => shakmaty::Square::H7,
+            (File::H, Rank::Eight) => shakmaty::Square::H8,
         }
     }
 }

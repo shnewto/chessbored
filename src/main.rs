@@ -19,6 +19,7 @@ pub fn main() {
         .insert_resource(assets::BoardAssets::default())
         .insert_resource(assets::TextAssets::default())
         .insert_resource(types::Board::default())
+        .insert_resource(types::Moves::default())
         .insert_resource(SavedFenState::default())
         .insert_resource(PieceMaterialHandles::default())
         .insert_resource(WindowDescriptor {

@@ -1,6 +1,8 @@
-use crate::board::ActiveSquare;
+use crate::board::{ActiveSquareHighlight, LegalMoveHighlight};
+use crate::types::Moves;
 use crate::{
     assets::BoardAssets,
+    board,
     board::get_square,
     camera::ChessCamera,
     types::{Board, WithActivePiece, WithSelectedPiece, WithSourcePiece},
@@ -12,6 +14,7 @@ use bevy::{
     ui::FocusPolicy,
 };
 use bevy_mod_picking::*;
+use shakmaty::{Chess, Position};
 
 #[derive(Debug, Clone)]
 pub enum Side {
@@ -27,6 +30,19 @@ pub enum Kind {
     Bishop,
     Queen,
     King,
+}
+
+impl Kind {
+    pub fn to_shakmaty(kind: Kind) -> shakmaty::Role {
+        match kind {
+            Kind::Pawn => shakmaty::Role::Pawn,
+            Kind::Rook => shakmaty::Role::Rook,
+            Kind::Knight => shakmaty::Role::Knight,
+            Kind::Bishop => shakmaty::Role::Bishop,
+            Kind::Queen => shakmaty::Role::Queen,
+            Kind::King => shakmaty::Role::King,
+        }
+    }
 }
 
 impl Default for Kind {
@@ -89,8 +105,18 @@ impl Side {
 pub struct Piece {
     pub def: Side,
     pub selected_translation: Option<Vec3>,
+    pub selected_from: Option<board::Square>,
     pub sprite_handle: Handle<ColorMaterial>,
     pub stale: bool,
+}
+
+impl Piece {
+    pub fn to_shakmaty(piece: Piece) -> shakmaty::Role {
+        match piece.def {
+            Side::White(k) => Kind::to_shakmaty(k),
+            Side::Black(k) => Kind::to_shakmaty(k),
+        }
+    }
 }
 
 #[derive(Component, Debug, Clone, Default)]
@@ -161,6 +187,7 @@ pub fn side_piece_selection(
                         def: piece_selection.def.clone(),
                         selected_translation: Some(transform.translation),
                         sprite_handle: piece_selection.sprite_handle.clone(),
+                        stale: false,
                         ..default()
                     })
                     .insert(SelectedPiece);
@@ -172,7 +199,9 @@ pub fn side_piece_selection(
 pub fn selection(
     mut commands: Commands,
     mut events: EventReader<PickingEvent>,
+    board: Res<Board>,
     board_assets: Res<BoardAssets>,
+    moves: Res<Moves>,
     mut active_query: Query<(
         &mut Piece,
         &Transform,
@@ -184,63 +213,95 @@ pub fn selection(
 ) {
     for event in events.iter() {
         // picking up
+        let mut has_legal_move = false;
         if let (PickingEvent::Clicked(e), true) =
             (event, mouse_button_input.pressed(MouseButton::Left))
         {
             if let Ok((mut active_piece, active_transform, active_mesh, _, _)) =
                 active_query.get_mut(*e)
             {
-                if get_square(
+                if let Some(square) = get_square(
                     active_transform.translation.x,
                     active_transform.translation.y,
-                )
-                .is_some()
-                {
-                    commands
-                        .spawn_bundle(SpriteBundle {
-                            texture: board_assets.square_selected_handle.clone(),
-                            transform: Transform::from_xyz(
-                                active_transform.translation.x,
-                                active_transform.translation.y,
-                                1.0,
-                            ),
-                            ..default()
-                        })
-                        .insert(ActiveSquare { stale: false });
-                }
+                ) {
+                    if moves.in_use {
+                        let available_moves: Vec<shakmaty::Move> = moves
+                            .data
+                            .legal_moves()
+                            .into_iter()
+                            .filter(|m| {
+                                m.role() == Piece::to_shakmaty((*active_piece).clone())
+                                    && m.from() == Some(board::Square::to_shakmaty(square.clone()))
+                            })
+                            .collect();
+                        for m in available_moves {
+                            if let Some(location) =
+                                board::Square::location_from_shakmaty(m.to(), &board)
+                            {
+                                has_legal_move = true;
+                                commands
+                                    .spawn_bundle(SpriteBundle {
+                                        texture: board_assets.legal_move_square_handle.clone(),
+                                        transform: Transform::from_xyz(location.x, location.y, 1.0),
+                                        ..default()
+                                    })
+                                    .insert(LegalMoveHighlight { stale: false });
+                            }
+                        }
+                    }
 
-                // there's no piece in hand so put the current selection in hand
-                commands
-                    .spawn_bundle(MaterialMesh2dBundle {
-                        mesh: active_mesh.clone(),
-                        transform: Transform::from_xyz(
-                            active_transform.translation.x,
-                            active_transform.translation.y,
-                            10.0,
-                        ),
-                        material: active_piece.sprite_handle.clone(),
-                        ..default()
-                    })
-                    .insert_bundle(PickableBundle {
-                        focus_policy: FocusPolicy::Pass,
-                        ..default()
-                    })
-                    .insert(Piece {
-                        def: active_piece.def.clone(),
-                        selected_translation: Some(active_transform.translation),
-                        sprite_handle: active_piece.sprite_handle.clone(),
-                        ..default()
-                    })
-                    .insert(SelectedPiece);
-                active_piece.stale = true;
+                    if has_legal_move || !moves.in_use {
+                        commands
+                            .spawn_bundle(SpriteBundle {
+                                texture: board_assets.square_selected_handle.clone(),
+                                transform: Transform::from_xyz(
+                                    active_transform.translation.x,
+                                    active_transform.translation.y,
+                                    1.0,
+                                ),
+                                ..default()
+                            })
+                            .insert(ActiveSquareHighlight {
+                                stale: false,
+                                square: Some(square.clone()),
+                            });
+
+                        commands
+                            .spawn_bundle(MaterialMesh2dBundle {
+                                mesh: active_mesh.clone(),
+                                transform: Transform::from_xyz(
+                                    active_transform.translation.x,
+                                    active_transform.translation.y,
+                                    10.0,
+                                ),
+                                material: active_piece.sprite_handle.clone(),
+                                ..default()
+                            })
+                            .insert_bundle(PickableBundle {
+                                focus_policy: FocusPolicy::Pass,
+                                ..default()
+                            })
+                            .insert(Piece {
+                                def: active_piece.def.clone(),
+                                selected_translation: Some(active_transform.translation),
+                                sprite_handle: active_piece.sprite_handle.clone(),
+                                selected_from: Some(square),
+                                stale: false,
+                            })
+                            .insert(SelectedPiece);
+                        active_piece.stale = true;
+                    }
+                }
             }
         }
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn drop_piece(
     board: Res<Board>,
     mut commands: Commands,
+    mut moves: ResMut<Moves>,
     mut active_query: Query<(
         &mut Piece,
         &Transform,
@@ -248,7 +309,7 @@ pub fn drop_piece(
         With<PickableMesh>,
         WithActivePiece,
     )>,
-    mut active_square_query: Query<&mut ActiveSquare>,
+    mut active_square_highlight_query: Query<&mut ActiveSquareHighlight>,
     mut selected_query: Query<(
         &mut Piece,
         &Transform,
@@ -256,14 +317,15 @@ pub fn drop_piece(
         With<PickableMesh>,
         WithSelectedPiece,
     )>,
-    mouse_button_input: Res<Input<MouseButton>>,
+    mut legal_move_square_hightlight_query: Query<(Entity, &mut LegalMoveHighlight)>,
+    mut mouse_button_input: ResMut<Input<MouseButton>>,
 ) {
     if mouse_button_input.just_released(MouseButton::Left) {
         if let Ok((mut selected_piece, selected_transform, selected_mesh, _, _)) =
             selected_query.get_single_mut()
         {
-            if let Ok(mut active_square) = active_square_query.get_single_mut() {
-                active_square.stale = true;
+            if let Ok(mut square) = active_square_highlight_query.get_single_mut() {
+                square.stale = true;
             }
 
             let (updated_x, updated_y) = if let Some(square) = get_square(
@@ -271,11 +333,14 @@ pub fn drop_piece(
                 selected_transform.translation.y,
             ) {
                 (
-                    board.get(&*square.to_string()).unwrap().x,
-                    board.get(&*square.to_string()).unwrap().y,
+                    board.get(square.to_string().as_str()).unwrap().x,
+                    board.get(square.to_string().as_str()).unwrap().y,
                 )
             } else {
                 selected_piece.stale = true;
+                for (_entity, mut square) in legal_move_square_hightlight_query.iter_mut() {
+                    square.stale = true;
+                }
                 return;
             };
 
@@ -290,16 +355,48 @@ pub fn drop_piece(
                     active_transform.translation.y,
                 );
 
-                if selected_square.is_some() && active_square == selected_square {
-                    // placing on occupied space
-                    active_piece.stale = true;
+                if let (Some(from_square), Some(to_square)) = (
+                    selected_piece.selected_from.clone(),
+                    selected_square.clone(),
+                ) {
+                    let mut capture = None;
+                    if Some(to_square.clone()) == active_square {
+                        capture = Some(Piece::to_shakmaty((*active_piece).clone()));
+                        active_piece.stale = true;
+                    }
+
+                    if moves.in_use {
+                        let role = Piece::to_shakmaty((*selected_piece).clone());
+                        let from = board::Square::to_shakmaty(from_square.clone());
+                        let to = board::Square::to_shakmaty(to_square.clone());
+
+                        let promotion = None;
+                        let mv = shakmaty::Move::Normal {
+                            role,
+                            from,
+                            to,
+                            capture,
+                            promotion,
+                        };
+
+                        let res = moves.data.clone().play(&mv);
+                        if let Ok(m) = res {
+                            moves.data = m;
+                        } else {
+                            selected_piece.stale = true;
+                            for (_entity, mut square) in
+                                legal_move_square_hightlight_query.iter_mut()
+                            {
+                                square.stale = true;
+                            }
+                        }
+                    }
                 }
             }
-
             commands
                 .spawn_bundle(MaterialMesh2dBundle {
                     mesh: selected_mesh.clone(),
-                    transform: Transform::from_xyz(updated_x, updated_y, 0.0),
+                    transform: Transform::from_xyz(updated_x, updated_y, 5.0),
                     material: selected_piece.sprite_handle.clone(),
                     ..default()
                 })
@@ -309,14 +406,23 @@ pub fn drop_piece(
                 })
                 .insert(Piece {
                     def: selected_piece.def.clone(),
-                    selected_translation: None,
+                    selected_translation: Some(Vec3::new(updated_x, updated_y, 5.0)),
                     sprite_handle: selected_piece.sprite_handle.clone(),
-                    ..default()
+                    selected_from: get_square(
+                        selected_transform.translation.x,
+                        selected_transform.translation.y,
+                    ),
+                    stale: false,
                 })
                 .insert(ActivePiece);
             selected_piece.stale = true;
+
+            for (_entity, mut square) in legal_move_square_hightlight_query.iter_mut() {
+                square.stale = true;
+            }
         }
     }
+    mouse_button_input.clear_just_released(MouseButton::Left);
 }
 
 pub fn piece_movement(
@@ -358,6 +464,8 @@ pub fn cancel_piece_movement(
         With<PickableMesh>,
         WithSelectedPiece,
     )>,
+    mut active_square_highlight_query: Query<(Entity, &mut ActiveSquareHighlight)>,
+    mut legal_move_square_highlight_query: Query<(Entity, &mut LegalMoveHighlight)>,
     keys: Res<Input<KeyCode>>,
 ) {
     for (entity, piece, mesh, _, _) in query.iter_mut() {
@@ -378,6 +486,7 @@ pub fn cancel_piece_movement(
                         def: piece.def.clone(),
                         selected_translation: Some(selected_translation),
                         sprite_handle: piece.sprite_handle.clone(),
+                        stale: false,
                         ..default()
                     })
                     .insert(ActivePiece);
@@ -385,10 +494,26 @@ pub fn cancel_piece_movement(
             } else {
                 commands.entity(entity).despawn_recursive();
             }
+
+            for (_entity, mut square) in legal_move_square_highlight_query.iter_mut() {
+                square.stale = true;
+            }
+
+            for (_entity, mut square) in active_square_highlight_query.iter_mut() {
+                square.stale = true;
+            }
         } else if keys.pressed(KeyCode::X)
             && !(keys.pressed(KeyCode::LShift) || keys.pressed(KeyCode::RShift))
         {
             commands.entity(entity).despawn_recursive();
+
+            for (_entity, mut square) in legal_move_square_highlight_query.iter_mut() {
+                square.stale = true;
+            }
+
+            for (_entity, mut square) in active_square_highlight_query.iter_mut() {
+                square.stale = true;
+            }
         }
     }
 }
@@ -397,7 +522,8 @@ pub fn clear_board(
     mut commands: Commands,
     mut active_query: Query<(Entity, &Piece, With<PickableMesh>, WithActivePiece)>,
     mut selected_query: Query<(Entity, &Piece, With<PickableMesh>, WithSelectedPiece)>,
-    mut active_square_query: Query<(Entity, &ActiveSquare)>,
+    mut active_square_highlight_query: Query<(Entity, &ActiveSquareHighlight)>,
+    mut legal_move_square_highlight_query: Query<(Entity, &LegalMoveHighlight)>,
     keys: Res<Input<KeyCode>>,
 ) {
     for (entity, piece, _, _) in active_query.iter_mut() {
@@ -415,7 +541,13 @@ pub fn clear_board(
         }
     }
 
-    for (entity, square) in active_square_query.iter_mut() {
+    for (entity, square) in active_square_highlight_query.iter_mut() {
+        if square.stale {
+            commands.entity(entity).despawn_recursive();
+        }
+    }
+
+    for (entity, square) in legal_move_square_highlight_query.iter_mut() {
         if square.stale {
             commands.entity(entity).despawn_recursive();
         }
@@ -481,6 +613,7 @@ pub fn place_piece<C: Component>(
                 board.get(pos).unwrap().y,
                 pz,
             )),
+            stale: false,
             ..default()
         })
         .insert(piece_kind);
@@ -611,6 +744,7 @@ pub fn setup_piece_selection(
 
 pub fn starting_positions(
     board: Res<Board>,
+    mut moves: ResMut<Moves>,
     mut commands: Commands,
     piece_material_handles: Res<PieceMaterialHandles>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -620,6 +754,9 @@ pub fn starting_positions(
     if !keys.pressed(KeyCode::I) {
         return;
     }
+
+    moves.data = Chess::default();
+    moves.in_use = true;
 
     for (entity, _piece, _, _) in query.iter() {
         commands.entity(entity).despawn_recursive();

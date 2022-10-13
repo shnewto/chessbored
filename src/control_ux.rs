@@ -28,17 +28,16 @@ pub fn spawn(mut commands: Commands, text_assets: Res<TextAssets>) {
 
     let text_alignment = TextAlignment::TOP_LEFT;
 
-    commands.spawn_bundle(
-        Text2dBundle {
-            text: Text::from_section(tips_text, text_style.clone()).with_alignment(text_alignment),
-            transform: Transform::from_xyz(
-                -140.0,
-                510.0,
-                1.0,
-            ),
-            ..default()
-        },
-        // AnimateScale,
-    ).insert(TipsElement)
-    .insert(ControlsText);
+    commands
+        .spawn_bundle(
+            Text2dBundle {
+                text: Text::from_section(tips_text, text_style)
+                    .with_alignment(text_alignment),
+                transform: Transform::from_xyz(-140.0, 510.0, 1.0),
+                ..default()
+            },
+            // AnimateScale,
+        )
+        .insert(TipsElement)
+        .insert(ControlsText);
 }

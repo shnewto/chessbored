@@ -62,7 +62,6 @@ pub fn toggle_save_position(
 
         let display_text = format!("saved:    {}", saved_fen.curr.clone());
 
-
         let text_style = TextStyle {
             font: fen_assets.regular_font_handle.clone(),
             font_size: 14.0,
@@ -71,17 +70,14 @@ pub fn toggle_save_position(
 
         let text_alignment = TextAlignment::TOP_LEFT;
 
-        let entity: Entity = commands.spawn_bundle(
-            Text2dBundle {
-                text: Text::from_section(display_text, text_style.clone()).with_alignment(text_alignment),
-                transform: Transform::from_xyz(
-                    -140.0,
-                    -80.0,
-                    1.0,
-                ),
+        let entity: Entity = commands
+            .spawn_bundle(Text2dBundle {
+                text: Text::from_section(display_text, text_style)
+                    .with_alignment(text_alignment),
+                transform: Transform::from_xyz(-140.0, -80.0, 1.0),
                 ..default()
-            },
-        ).id();
+            })
+            .id();
         saved_fen.text_entity = Some(entity);
         saved_fen.saved = saved_fen.curr.clone();
     }
@@ -94,7 +90,6 @@ pub fn spawn(mut commands: Commands, fen_assets: Res<TextAssets>) {
         --------------------
         current: "};
 
-
     let text_style = TextStyle {
         font: fen_assets.regular_font_handle.clone(),
         font_size: 14.0,
@@ -103,29 +98,22 @@ pub fn spawn(mut commands: Commands, fen_assets: Res<TextAssets>) {
 
     let text_alignment = TextAlignment::TOP_LEFT;
 
-    commands.spawn_bundle(
-        Text2dBundle {
-            text: Text::from_section(positions_text, text_style.clone()).with_alignment(text_alignment),
-            transform: Transform::from_xyz(
-                -140.0,
-                -32.0,
-                1.0,
-            ),
+    commands
+        .spawn_bundle(Text2dBundle {
+            text: Text::from_section(positions_text, text_style.clone())
+                .with_alignment(text_alignment),
+            transform: Transform::from_xyz(-140.0, -32.0, 1.0),
             ..default()
-        },
-    ).insert(FenElement);
+        })
+        .insert(FenElement);
 
-    commands.spawn_bundle(
-        Text2dBundle {
+    commands
+        .spawn_bundle(Text2dBundle {
             text: Text::from_section(txt_val, text_style).with_alignment(text_alignment),
-            transform: Transform::from_xyz(
-                -79.0,
-                -60.0,
-                1.0,
-            ),
+            transform: Transform::from_xyz(-79.0, -60.0, 1.0),
             ..default()
-        },
-    ).insert(FenText);
+        })
+        .insert(FenText);
 }
 
 pub fn copy_to_clipboard(
@@ -270,9 +258,7 @@ pub fn generate_fen(
 
     saved_fen_state.curr = fen.clone();
 
-
     if let Ok(mut text) = text_query.get_single_mut() {
-
         let text_style = TextStyle {
             font: text_assets.regular_font_handle.clone(),
             font_size: 14.0,

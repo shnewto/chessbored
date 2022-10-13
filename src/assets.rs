@@ -9,9 +9,11 @@ pub struct BoardAssets {
     pub dark_square_bytes: Vec<u8>,
     pub light_square_bytes: Vec<u8>,
     pub square_selected_bytes: Vec<u8>,
+    pub legal_move_square_bytes: Vec<u8>,
     pub dark_square_handle: Handle<Image>,
     pub light_square_handle: Handle<Image>,
     pub square_selected_handle: Handle<Image>,
+    pub legal_move_square_handle: Handle<Image>,
     pub bp: Handle<Image>,
     pub br: Handle<Image>,
     pub bn: Handle<Image>,
@@ -43,6 +45,7 @@ pub fn load_assets(
     let dark_square_bytes = include_bytes!("../assets/board/dark-square.data");
     let light_square_bytes = include_bytes!("../assets/board/light-square.data");
     let square_selected_bytes = include_bytes!("../assets/board/square-selected.data");
+    let legal_move_square_bytes = include_bytes!("../assets/board/legal-move-square.data");
     let bq_bytes = include_bytes!("../assets/pieces/bq.data");
     let bk_bytes = include_bytes!("../assets/pieces/bk.data");
     let br_bytes = include_bytes!("../assets/pieces/br.data");
@@ -73,6 +76,7 @@ pub fn load_assets(
     let dark_square = to_image(dark_square_bytes);
     let square_selected = to_image(square_selected_bytes);
     let light_square = to_image(light_square_bytes);
+    let legal_move_square = to_image(legal_move_square_bytes);
 
     let bq = to_image(bq_bytes);
     let bk = to_image(bk_bytes);
@@ -91,6 +95,7 @@ pub fn load_assets(
     board_assets.dark_square_handle = textures.add(dark_square);
     board_assets.light_square_handle = textures.add(light_square);
     board_assets.square_selected_handle = textures.add(square_selected);
+    board_assets.legal_move_square_handle = textures.add(legal_move_square);
 
     board_assets.bq = textures.add(bq);
     board_assets.bk = textures.add(bk);

@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use bevy::prelude::Component;
 use bevy::{
     math::Vec2,
     prelude::{With, Without},
@@ -11,7 +12,15 @@ use crate::{
     pieces::{ActivePiece, SelectedPiece, SourcePiece},
 };
 
+use shakmaty::Chess;
+
 pub type Board = HashMap<&'static str, Vec2>;
+
+#[derive(Clone, Debug, Default, Component)]
+pub struct Moves {
+    pub data: Chess,
+    pub in_use: bool,
+}
 
 pub type WithSelectedPiece = (
     With<SelectedPiece>,
