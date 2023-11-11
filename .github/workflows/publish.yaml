@@ -43,6 +43,6 @@ jobs:
       - name: commit bumped version
         uses: stefanzweifel/git-auto-commit-action@v5
       - name: cargo publish
-        run: cargo publish ${CRATES_TOKEN}
+        run: cargo publish --token ${CRATES_TOKEN}
         env:
           CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}        
