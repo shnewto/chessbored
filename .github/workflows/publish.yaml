@@ -41,7 +41,7 @@ jobs:
       - name: bump version
         run: cargo bump -g ${{ inputs.max-instances }}
       - name: commit bumped version
-        run: git commit -m "bumped cargo version"
+        run: git add Cargo.toml && git commit -m "bumped cargo version"
       - name: push
         run: git push --tags
       - name: cargo publish
