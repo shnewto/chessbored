@@ -18,20 +18,15 @@ pub enum Side {
     Black(Kind),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum Kind {
+    #[default]
     Pawn,
     Rook,
     Knight,
     Bishop,
     Queen,
     King,
-}
-
-impl Default for Kind {
-    fn default() -> Self {
-        Kind::Pawn
-    }
 }
 
 impl Default for Side {
@@ -316,7 +311,7 @@ pub fn piece_movement(
         };
 
         if let Some(screen_pos) = wnd.cursor_position() {
-            let window_size = Vec2::new(wnd.width() as f32, wnd.height() as f32);
+            let window_size = Vec2::new(wnd.width(), wnd.height());
 
             let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
             let ndc_to_world =
