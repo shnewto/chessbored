@@ -41,7 +41,7 @@ jobs:
       - name: bump version
         run: cargo bump -g ${{ inputs.max-instances }}
       - name: push
-        run: git push --tags
+        run: git push && git push --tags
       - name: cargo publish
         run: cargo publish --token ${CRATES_TOKEN}
         env:
