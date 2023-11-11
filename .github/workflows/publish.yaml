@@ -41,7 +41,9 @@ jobs:
       - name: bump version
         run: cargo bump -g ${{ inputs.max-instances }}
       - name: commit bumped version
-        uses: stefanzweifel/git-auto-commit-action@v5
+        run: git commit -m "bumped cargo version"
+      - name: push
+        run: git push --tags
       - name: cargo publish
         run: cargo publish --token ${CRATES_TOKEN}
         env:
