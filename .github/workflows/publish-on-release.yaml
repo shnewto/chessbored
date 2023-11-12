@@ -30,7 +30,7 @@ jobs:
       - name: install cargo bump
         run: cargo install cargo-bump          
       - name: bump version
-        run: cargo bump ${{ GITHUB_REF }}
+        run: cargo bump ${{ github.ref_name }}
       - name: push
         run: git push
       - name: cargo publish
