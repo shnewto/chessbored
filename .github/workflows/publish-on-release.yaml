@@ -32,6 +32,6 @@ jobs:
       - name: bump version
         run: cargo bump ${{ github.ref_name }}
       - name: push
-        run: git push
+        run: git push origin main
       - name: cargo publish
         run: cargo publish --token ${{ secrets.CRATES_TOKEN }}  
