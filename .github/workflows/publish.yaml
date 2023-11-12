@@ -42,6 +42,4 @@ jobs:
       - name: push
         run: git push && git push --tags
       - name: cargo publish
-        run: cargo publish --token ${CRATES_TOKEN}
-        env:
-          CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}        
+        run: cargo publish --token ${{ secrets.CRATES_TOKEN }}
