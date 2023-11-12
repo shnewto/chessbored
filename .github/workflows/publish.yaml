@@ -38,7 +38,7 @@ jobs:
       - name: install cargo bump
         run: cargo install cargo-bump          
       - name: bump version
-        run: cargo bump -g ${{ inputs.max-instances }}
+        run: cargo bump -g ${{ inputs.tag-increment }}
       - name: push
         run: git push && git push --tags
       - name: cargo publish
