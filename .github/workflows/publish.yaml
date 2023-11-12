@@ -1,4 +1,4 @@
-name: publish crate and increment tag [manual]
+name: tag and publish [manual]
 
 on:
   workflow_dispatch:
