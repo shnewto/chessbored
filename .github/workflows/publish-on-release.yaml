@@ -1,4 +1,4 @@
-name: publish crate on release
+name: publish on release [auto]
 
 on:
   release:
