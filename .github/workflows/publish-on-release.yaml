@@ -1,16 +1,8 @@
-name: publish crate and increment tag
+name: publish crate on release
 
 on:
-  workflow_dispatch:
-    inputs:
-      tag-increment:
-        default: patch
-        required: true
-        type: choice
-        options:
-          - patch
-          - minor
-          - major  
+  release:
+    types: [published]
 
 jobs:
   publish:
@@ -38,10 +30,8 @@ jobs:
       - name: install cargo bump
         run: cargo install cargo-bump          
       - name: bump version
-        run: cargo bump -g ${{ inputs.max-instances }}
+        run: cargo bump ${{ GITHUB_REF }}
       - name: push
-        run: git push && git push --tags
+        run: git push
       - name: cargo publish
-        run: cargo publish --token ${CRATES_TOKEN}
-        env:
-          CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}        
+        run: cargo publish --token ${{ secrets.CRATES_TOKEN }}  
